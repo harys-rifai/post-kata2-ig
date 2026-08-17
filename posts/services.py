@@ -45,6 +45,7 @@ class PostService:
     def generate_image_for_post(post):
         try:
             image_data, image_url = AIService.generate_image(post.image_prompt)
+            image_data = PostService._process_image(image_data)
             filename = f"post_{post.id}_{timezone.now().strftime('%Y%m%d%H%M%S')}.png"
             post.image.save(filename, ContentFile(image_data), save=False)
             post.save()
@@ -53,6 +54,21 @@ class PostService:
             post.error_message = str(e)
             post.save()
             return False
+
+    @staticmethod
+    def _process_image(image_data):
+        try:
+            img = PILImage.open(BytesIO(image_data))
+            if img.mode in ("RGBA", "LA"):
+                background = PILImage.new("RGB", img.size, (255, 255, 255))
+                background.paste(img, mask=img.split()[-1])
+                img = background
+            img.thumbnail((1024, 1024))
+            buffer = BytesIO()
+            img.save(buffer, format="PNG", optimize=True)
+            return buffer.getvalue()
+        except Exception as e:
+            raise Exception(f"Image processing failed: {str(e)}")
 
     @staticmethod
     def schedule_post(post, publish_at):
@@ -86,6 +102,16 @@ class PostService:
         post.retry_count += 1
         post.error_message = error_message
         post.save()
+
+    @staticmethod
+    def should_retry(post, max_retries=5):
+        if post.retry_count >= max_retries:
+            return False
+        delay = 2 ** post.retry_count
+        if post.updated_at:
+            next_retry = post.updated_at + timedelta(minutes=delay)
+            return timezone.now() >= next_retry
+        return True
 
     @staticmethod
     def update_post(post, title=None, topic=None, caption=None, hashtags=None, image_prompt=None, publish_at=None, status=None):

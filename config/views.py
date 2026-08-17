@@ -30,6 +30,23 @@ def login_view(request):
     return render(request, "login.html")
 
 
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect("dashboard")
+    
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect("dashboard")
+        else:
+            return render(request, "login.html", {"error": "Invalid username or password"})
+    
+    return render(request, "login.html")
+
+
 @login_required
 def logout_view(request):
     logout(request)
@@ -240,11 +257,22 @@ def generate_view(request):
                     "post_id": post.id,
                 }
                 logger.info(f"User {request.user.username} generated post: {post.id}")
-            except requests.exceptions.ConnectionError:
+            except requests.exceptions.ConnectionError as e:
                 error = "Cannot connect to AI Router at http://localhost:20128/v1. Make sure it's running."
-                logger.error("AI Router connection failed")
+                logger.error(f"AI Router connection failed: {e}")
+            except requests.exceptions.HTTPError as e:
+                status = getattr(e.response, 'status_code', 'unknown')
+                reason = getattr(e.response, 'reason', 'unknown error')
+                error = f"AI Router returned error {status}: {reason}"
+                logger.error(f"AI Router HTTP error: {e}")
+            except requests.exceptions.Timeout as e:
+                error = "AI Router request timed out. Try again."
+                logger.error(f"AI Router timeout: {e}")
+            except ValueError as e:
+                error = f"Invalid AI response: {str(e)}"
+                logger.error(f"Invalid AI response: {e}")
             except Exception as e:
-                error = f"Generate failed: {str(e)}"
+                error = f"Generate failed: {str(e) if str(e) else 'Unknown error occurred'}"
                 logger.error(f"Generate failed: {e}")
     
     context = {
@@ -289,3 +317,95 @@ def test_ig_connection_view(request):
             messages.error(request, f"Connection failed: {error}")
             return redirect("settings")
     return redirect("settings")
+
+
+@login_required
+def approval_view(request):
+    pending_posts = Post.objects.filter(status="generated").order_by("-created_at")
+    context = {
+        "pending_posts": pending_posts,
+    }
+    return render(request, "approval.html", context)
+
+
+@login_required
+def approve_post_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    post.status = "scheduled"
+    post.save()
+    logger.info(f"User {request.user.username} approved post: {post.id}")
+    return redirect("approval")
+
+
+@login_required
+def reject_post_view(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    post.status = "draft"
+    post.save()
+    logger.info(f"User {request.user.username} rejected post: {post.id}")
+    return redirect("approval")
+
+
+@login_required
+def monitoring_view(request):
+    total_posts = Post.objects.count()
+    published_posts = Post.objects.filter(status="published").count()
+    failed_posts = Post.objects.filter(status="failed").count()
+    success_rate = (published_posts / total_posts * 100) if total_posts > 0 else 0
+    
+    week_ago = timezone.now() - timedelta(days=7)
+    daily_stats = []
+    for i in range(7):
+        date = week_ago + timedelta(days=i)
+        count = Post.objects.filter(
+            created_at__date=date.date()
+        ).count()
+        daily_stats.append({
+            "date": date.strftime("%Y-%m-%d"),
+            "count": count,
+        })
+    
+    context = {
+        "total_posts": total_posts,
+        "published_posts": published_posts,
+        "failed_posts": failed_posts,
+        "success_rate": round(success_rate, 1),
+        "daily_stats": daily_stats,
+    }
+    return render(request, "monitoring.html", context)
+
+
+@login_required
+def health_check_view(request):
+    from django.http import JsonResponse
+    
+    checks = {
+        "database": False,
+        "redis": False,
+        "ai_router": False,
+    }
+    
+    try:
+        Post.objects.first()
+        checks["database"] = True
+    except Exception:
+        pass
+    
+    try:
+        from django.core.cache import cache
+        cache.set("health_check", "ok", 1)
+        checks["redis"] = cache.get("health_check") == "ok"
+    except Exception:
+        pass
+    
+    try:
+        response = requests.get(f"{django_settings.AI_API_BASE}/health", timeout=5)
+        checks["ai_router"] = response.status_code == 200
+    except Exception:
+        pass
+    
+    all_healthy = all(checks.values())
+    return JsonResponse({
+        "status": "healthy" if all_healthy else "unhealthy",
+        "checks": checks,
+    })

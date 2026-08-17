@@ -24,7 +24,13 @@ class AIService:
             timeout=120,
         )
         response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
+        data = response.json()
+        if "choices" not in data or not data["choices"]:
+            raise ValueError("AI response missing 'choices'")
+        choice = data["choices"][0]
+        if "message" not in choice or "content" not in choice["message"]:
+            raise ValueError("AI response missing 'message.content'")
+        return choice["message"]["content"]
 
     @staticmethod
     def generate_caption(topic):
