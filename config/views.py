@@ -8,6 +8,7 @@ from datetime import timedelta
 from posts.models import Post, InstagramConnection
 from posts.services import PostService, InstagramConnectionService
 import logging
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -239,8 +240,11 @@ def generate_view(request):
                     "post_id": post.id,
                 }
                 logger.info(f"User {request.user.username} generated post: {post.id}")
+            except requests.exceptions.ConnectionError:
+                error = "Cannot connect to AI Router at http://localhost:20128/v1. Make sure it's running."
+                logger.error("AI Router connection failed")
             except Exception as e:
-                error = str(e)
+                error = f"Generate failed: {str(e)}"
                 logger.error(f"Generate failed: {e}")
     
     context = {

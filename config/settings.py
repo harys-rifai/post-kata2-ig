@@ -70,22 +70,15 @@ DATABASES = {
 
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": os.getenv("REDIS_URL", "redis://:Password09!@127.0.0.1:6379/1"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
-    },
-    "fallback": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "post-ig-fallback",
-    },
+        "LOCATION": "post-ig-local",
+    }
 }
 
 CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://:Password09!@localhost:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "redis://:Password09!@localhost:6379/0")
 
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_CACHE_ALIAS = "default"
 
 CSRF_TRUSTED_ORIGINS = ["http://localhost:809", "http://127.0.0.1:809"]
