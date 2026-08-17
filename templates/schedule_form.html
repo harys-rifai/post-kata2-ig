@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Schedule Post{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Schedule Post</h1>
+    <div class="user-info">
+        <span>Welcome, {{ request.user.username }}</span>
+        <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<div class="content-card">
+    <h2>Schedule New Post</h2>
+    {% if error %}
+    <div style="margin-bottom: 20px; padding: 15px; background: #f8d7da; border-radius: 6px; color: #721c24;">
+        <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Select Post *</label>
+            <select name="post_id" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                <option value="">-- Select Post --</option>
+                {% for p in posts %}
+                <option value="{{ p.id }}">{{ p.title }} ({{ p.topic }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Publish At *</label>
+            <input type="datetime-local" name="publish_at" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+        </div>
+        <button type="submit" class="btn btn-primary">Schedule</button>
+        <a href="/schedule/" class="btn" style="background: #6c757d; color: white; margin-left: 10px;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

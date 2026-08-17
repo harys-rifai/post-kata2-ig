@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Generate Content{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Generate Content</h1>
+    <div class="user-info">
+        <span>Welcome, {{ request.user.username }}</span>
+                <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<div class="content-card">
+    <h2>Generate New Content</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Topic</label>
+            <select name="topic" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                <option value="">-- Select Topic --</option>
+                {% for t in topics %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Custom Topic (optional)</label>
+            <input type="text" name="custom_topic" placeholder="Enter custom topic..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+        </div>
+        <button type="submit" class="btn btn-primary">Generate Content</button>
+    </form>
+    {% if result %}
+    <div style="margin-top: 20px; padding: 15px; background: #d4edda; border-radius: 6px; color: #155724;">
+        <strong>Success!</strong> Generated: {{ result.title }} (Image: {{ result.has_image|yesno:"Yes,No" }})
+    </div>
+    {% endif %}
+    {% if error %}
+    <div style="margin-top: 20px; padding: 15px; background: #f8d7da; border-radius: 6px; color: #721c24;">
+        <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

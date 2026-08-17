@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Dashboard</h1>
+    <div class="user-info">
+        <span>Welcome, {{ request.user.username }}</span>
+                <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<div class="stats">
+    <div class="stat-card total">
+        <h3>Total Posts</h3>
+        <div class="number">{{ total_posts }}</div>
+    </div>
+    <div class="stat-card today">
+        <h3>Today</h3>
+        <div class="number">{{ today_posts }}</div>
+    </div>
+    <div class="stat-card published">
+        <h3>Published</h3>
+        <div class="number">{{ published_posts }}</div>
+    </div>
+    <div class="stat-card scheduled">
+        <h3>Scheduled</h3>
+        <div class="number">{{ scheduled_posts }}</div>
+    </div>
+    <div class="stat-card pending">
+        <h3>Pending</h3>
+        <div class="number">{{ pending_posts }}</div>
+    </div>
+    <div class="stat-card failed">
+        <h3>Failed</h3>
+        <div class="number">{{ failed_posts }}</div>
+    </div>
+</div>
+
+<div class="content-card">
+    <h2>Recent Posts (Last 7 Days)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Topic</th>
+                <th>Status</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in recent_posts %}
+            <tr>
+                <td>{{ post.title }}</td>
+                <td>{{ post.topic }}</td>
+                <td>
+                    <span class="status {{ post.status }}">
+                        {{ post.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ post.created_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="empty-state">
+                    No posts yet. Go to Generate page to create content.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

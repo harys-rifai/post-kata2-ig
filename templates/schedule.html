@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Schedule{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Schedule</h1>
+    <div class="user-info">
+        <span>Welcome, {{ request.user.username }}</span>
+        <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<div class="action-buttons">
+    <a href="/schedule/create/" class="btn btn-primary">+ Schedule Post</a>
+</div>
+
+<div class="content-card">
+    <h2>Scheduled Posts</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Topic</th>
+                <th>Status</th>
+                <th>Publish At</th>
+                <th>Retry</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in scheduled_posts %}
+            <tr>
+                <td>{{ post.title }}</td>
+                <td>{{ post.topic }}</td>
+                <td>
+                    <span class="status {{ post.status }}">
+                        {{ post.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ post.publish_at|date:"Y-m-d H:i" }}</td>
+                <td>{{ post.retry_count }}</td>
+                <td>{{ post.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    <a href="/schedule/delete/{{ post.id }}/" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Unschedule this post?')">Unschedule</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="empty-state">
+                    No scheduled posts yet.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="content-card">
+    <h2>Failed Posts</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Topic</th>
+                <th>Error</th>
+                <th>Retry</th>
+                <th>Updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in failed_posts %}
+            <tr>
+                <td>{{ post.title }}</td>
+                <td>{{ post.topic }}</td>
+                <td>{{ post.error_message|default:"-" }}</td>
+                <td>{{ post.retry_count }}</td>
+                <td>{{ post.updated_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="empty-state">
+                    No failed posts. Great!
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

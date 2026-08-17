@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}{% if post %}Edit Post{% else %}Create Post{% endif %}{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>{% if post %}Edit Post{% else %}Create Post{% endif %}</h1>
+    <div class="user-info">
+        <span>Welcome, {{ request.user.username }}</span>
+        <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<div class="content-card">
+    <h2>{% if post %}Edit Post{% else %}New Post{% endif %}</h2>
+    {% if error %}
+    <div style="margin-bottom: 20px; padding: 15px; background: #f8d7da; border-radius: 6px; color: #721c24;">
+        <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Title *</label>
+            <input type="text" name="title" value="{% if post %}{{ post.title }}{% endif %}" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+        </div>
+        <div class="form-group">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Topic *</label>
+            <input type="text" name="topic" value="{% if post %}{{ post.topic }}{% endif %}" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+        </div>
+        <div class="form-group">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Caption</label>
+            <textarea name="caption" rows="4" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">{% if post %}{{ post.caption }}{% endif %}</textarea>
+        </div>
+        <div class="form-group">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Hashtags</label>
+            <textarea name="hashtags" rows="2" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">{% if post %}{{ post.hashtags }}{% endif %}</textarea>
+        </div>
+        <div class="form-group">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Image Prompt</label>
+            <textarea name="image_prompt" rows="2" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">{% if post %}{{ post.image_prompt }}{% endif %}</textarea>
+        </div>
+        <div class="form-group">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Publish At</label>
+            <input type="datetime-local" name="publish_at" value="{% if post and post.publish_at %}{{ post.publish_at|date:'Y-m-d\TH:i' }}{% endif %}" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+        </div>
+        <div class="form-group">
+            <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Status</label>
+            <select name="status" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                <option value="draft" {% if post and post.status == "draft" %}selected{% endif %}>Draft</option>
+                <option value="generated" {% if post and post.status == "generated" %}selected{% endif %}>Generated</option>
+                <option value="scheduled" {% if post and post.status == "scheduled" %}selected{% endif %}>Scheduled</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="/posts/" class="btn" style="background: #6c757d; color: white; margin-left: 10px;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

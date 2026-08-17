@@ -1,0 +1,12 @@
+Django>=4.2,<5.0
+psycopg2-binary>=2.9
+redis>=4.5
+django-redis>=5.3
+celery>=5.3
+python-dotenv>=1.0
+pillow>=10.0
+openai>=1.0
+playwright>=1.40
+requests>=2.31
+django-filter>=23.3
+djangorestframework>=3.14

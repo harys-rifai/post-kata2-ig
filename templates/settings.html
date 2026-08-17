@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Settings</h1>
+    <div class="user-info">
+        <span>Welcome, {{ request.user.username }}</span>
+                <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<div class="content-card">
+    <h2>Configuration</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Setting</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>AI API Base</td>
+                <td>{{ ai_api_base }}</td>
+            </tr>
+            <tr>
+                <td>AI Model</td>
+                <td>{{ ai_model }}</td>
+            </tr>
+            <tr>
+                <td>AI Image Model</td>
+                <td>{{ ai_image_model }}</td>
+            </tr>
+            <tr>
+                <td>Instagram Username</td>
+                <td>{{ instagram_username }}</td>
+            </tr>
+            <tr>
+                <td>Database</td>
+                <td>{{ db_name }}@{{ db_host }}:{{ db_port }}</td>
+            </tr>
+            <tr>
+                <td>Redis</td>
+                <td>{{ redis_url }}</td>
+            </tr>
+            <tr>
+                <td>Celery Beat Schedule</td>
+                <td>
+                    Morning: 08:00<br>
+                    Afternoon: 13:00<br>
+                    Night: 20:00<br>
+                    Generate: 07:30<br>
+                    Retry: 06:00
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="content-card">
+    <h2>Instagram Connection</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Setting</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Username</td>
+                <td>{{ instagram_username }}</td>
+            </tr>
+            <tr>
+                <td>Status</td>
+                <td>
+                    {% if ig_connection %}
+                        <span class="status {{ ig_connection.status }}">
+                            {{ ig_connection.get_status_display }}
+                        </span>
+                    {% else %}
+                        <span class="status disconnected">Not checked</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% if ig_connection and ig_connection.last_login %}
+            <tr>
+                <td>Last Login</td>
+                <td>{{ ig_connection.last_login|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% endif %}
+            {% if ig_connection and ig_connection.last_error %}
+            <tr>
+                <td>Last Error</td>
+                <td style="color: #dc3545;">{{ ig_connection.last_error }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+    <form method="POST" action="/settings/test-ig/" style="margin-top: 20px;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Test Instagram Connection</button>
+    </form>
+</div>
+
+<div class="content-card">
+    <h2>Actions</h2>
+    <div class="action-buttons">
+        <a href="/generate/" class="btn btn-primary">Generate Content</a>
+        <a href="/posts/" class="btn btn-success">View Posts</a>
+        <a href="/schedule/" class="btn btn-primary">Schedule</a>
+    </div>
+</div>
+{% endblock %}

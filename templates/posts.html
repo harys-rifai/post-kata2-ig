@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Posts{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Posts</h1>
+    <div class="user-info">
+        <span>Welcome, {{ request.user.username }}</span>
+        <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<div class="action-buttons">
+    <a href="/posts/create/" class="btn btn-primary">+ Create Post</a>
+</div>
+
+<div class="content-card">
+    <h2>All Posts</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Topic</th>
+                <th>Status</th>
+                <th>Image</th>
+                <th>Publish At</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in posts %}
+            <tr>
+                <td>{{ post.title }}</td>
+                <td>{{ post.topic }}</td>
+                <td>
+                    <span class="status {{ post.status }}">
+                        {{ post.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    {% if post.image %}
+                    <img src="{{ post.image.url }}" style="max-width: 50px; max-height: 50px; border-radius: 4px;">
+                    {% else %}
+                    <span style="color: #999;">No image</span>
+                    {% endif %}
+                </td>
+                <td>{{ post.publish_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                <td>{{ post.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    <a href="/posts/edit/{{ post.id }}/" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">Edit</a>
+                    <a href="/posts/delete/{{ post.id }}/" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Are you sure?')">Delete</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="empty-state">
+                    No posts yet. Go to Generate page to create content.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

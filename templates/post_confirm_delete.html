@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Delete Post{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Delete Post</h1>
+    <div class="user-info">
+        <span>Welcome, {{ request.user.username }}</span>
+        <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<div class="content-card">
+    <h2>Are you sure you want to delete this post?</h2>
+    <p><strong>Title:</strong> {{ post.title }}</p>
+    <p><strong>Topic:</strong> {{ post.topic }}</p>
+    <p><strong>Status:</strong> {{ post.get_status_display }}</p>
+    <form method="POST" style="margin-top: 20px;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a href="/posts/" class="btn" style="background: #6c757d; color: white; margin-left: 10px;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

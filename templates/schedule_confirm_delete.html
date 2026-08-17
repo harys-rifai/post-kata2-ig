@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Unschedule Post{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Unschedule Post</h1>
+    <div class="user-info">
+        <span>Welcome, {{ request.user.username }}</span>
+        <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<div class="content-card">
+    <h2>Are you sure you want to unschedule this post?</h2>
+    <p><strong>Title:</strong> {{ post.title }}</p>
+    <p><strong>Topic:</strong> {{ post.topic }}</p>
+    <p><strong>Publish At:</strong> {{ post.publish_at|date:"Y-m-d H:i" }}</p>
+    <form method="POST" style="margin-top: 20px;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Unschedule</button>
+        <a href="/schedule/" class="btn" style="background: #6c757d; color: white; margin-left: 10px;">Cancel</a>
+    </form>
+</div>
+{% endblock %}

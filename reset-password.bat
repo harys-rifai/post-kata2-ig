@@ -1,0 +1,1 @@
+python manage.py shell -c "from django.contrib.auth import get_user_model; u=get_user_model().objects.get(username='harys'); u.set_password('123123'); u.save(); print('Password reset')"
