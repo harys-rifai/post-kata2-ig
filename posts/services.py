@@ -8,28 +8,19 @@ from django.utils import timezone
 from django.core.files.base import ContentFile
 from PIL import Image as PILImage
 from io import BytesIO
-from .models import Post, InstagramConnection
+from .models import Post, InstagramConnection, Topic
 from ai.services import AIService, InstagramAutomationService
-
-
-TOPICS = [
-    "Berita Jakarta",
-    "Wisata Jakarta",
-    "Kuliner Jakarta",
-    "Kata Kata Motivasi",
-    "Fakta Unik Indonesia",
-    "Tips Kehidupan",
-    "Teknologi",
-    "AI",
-    "Digital Lifestyle",
-    "Viral Indonesia",
-]
 
 
 class PostService:
     @staticmethod
     def generate_content(topic=None):
-        topic = topic or random.choice(TOPICS)
+        if topic is None:
+            topics = list(Topic.objects.values_list("name", flat=True))
+            if topics:
+                topic = random.choice(topics)
+            else:
+                topic = "AI"
         result = AIService.generate_caption(topic)
         post = Post.objects.create(
             title=result.get("title", topic),
@@ -52,8 +43,16 @@ class PostService:
             return True
         except Exception as e:
             post.error_message = str(e)
-            post.save()
-            return False
+            try:
+                image_data = PostService._generate_placeholder_image(post.title or post.topic)
+                filename = f"post_{post.id}_{timezone.now().strftime('%Y%m%d%H%M%S')}.png"
+                post.image.save(filename, ContentFile(image_data), save=False)
+                post.save()
+                return True
+            except Exception as placeholder_error:
+                post.error_message = f"{str(e)}; placeholder fallback also failed: {str(placeholder_error)}"
+                post.save()
+                return False
 
     @staticmethod
     def _process_image(image_data):
@@ -69,6 +68,25 @@ class PostService:
             return buffer.getvalue()
         except Exception as e:
             raise Exception(f"Image processing failed: {str(e)}")
+
+    @staticmethod
+    def _generate_placeholder_image(text):
+        img = PILImage.new("RGB", (1024, 1024), color=(50, 50, 50))
+        from PIL import ImageDraw, ImageFont
+        draw = ImageDraw.Draw(img)
+        try:
+            font = ImageFont.truetype("arial.ttf", 60)
+        except Exception:
+            font = ImageFont.load_default()
+        bbox = draw.textbbox((0, 0), text, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        x = (1024 - text_width) / 2
+        y = (1024 - text_height) / 2
+        draw.text((x, y), text, fill=(255, 255, 255), font=font)
+        buffer = BytesIO()
+        img.save(buffer, format="PNG", optimize=True)
+        return buffer.getvalue()
 
     @staticmethod
     def schedule_post(post, publish_at):

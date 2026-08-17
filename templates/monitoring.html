@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Monitoring{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Monitoring</h1>
+    <div class="user-info">
+        <span>Welcome, {{ request.user.username }}</span>
+        <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<div class="stats">
+    <div class="stat-card total">
+        <h3>Total Posts</h3>
+        <div class="number">{{ total_posts }}</div>
+    </div>
+    <div class="stat-card published">
+        <h3>Published</h3>
+        <div class="number">{{ published_posts }}</div>
+    </div>
+    <div class="stat-card failed">
+        <h3>Failed</h3>
+        <div class="number">{{ failed_posts }}</div>
+    </div>
+    <div class="stat-card scheduled">
+        <h3>Success Rate</h3>
+        <div class="number">{{ success_rate }}%</div>
+    </div>
+</div>
+
+<div class="content-card">
+    <h2>Daily Stats (Last 7 Days)</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Posts Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for day in daily_stats %}
+            <tr>
+                <td>{{ day.date }}</td>
+                <td>{{ day.count }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="2" class="empty-state">
+                    No data available.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

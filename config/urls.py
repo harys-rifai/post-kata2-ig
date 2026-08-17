@@ -16,6 +16,11 @@ from config.views import (
     generate_view,
     settings_view,
     test_ig_connection_view,
+    approval_view,
+    approve_post_view,
+    reject_post_view,
+    monitoring_view,
+    health_check_view,
 )
 
 urlpatterns = [
@@ -32,6 +37,11 @@ urlpatterns = [
     path("generate/", generate_view, name="generate"),
     path("settings/", settings_view, name="settings"),
     path("settings/test-ig/", test_ig_connection_view, name="test_ig_connection"),
+    path("approval/", approval_view, name="approval"),
+    path("approval/approve/<int:pk>/", approve_post_view, name="approve_post"),
+    path("approval/reject/<int:pk>/", reject_post_view, name="reject_post"),
+    path("monitoring/", monitoring_view, name="monitoring"),
+    path("health/", health_check_view, name="health_check"),
     path("admin/", admin.site.urls),
 ]
 

@@ -230,6 +230,14 @@
                 <span class="nav-icon">✨</span>
                 Generate
             </a>
+            <a href="/approval/" class="nav-item {% if request.resolver_match.url_name == 'approval' %}active{% endif %}">
+                <span class="nav-icon">✅</span>
+                Approval
+            </a>
+            <a href="/monitoring/" class="nav-item {% if request.resolver_match.url_name == 'monitoring' %}active{% endif %}">
+                <span class="nav-icon">📈</span>
+                Monitoring
+            </a>
             <a href="/settings/" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
                 <span class="nav-icon">⚙️</span>
                 Settings

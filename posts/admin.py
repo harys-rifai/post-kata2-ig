@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Post, InstagramConnection
+from .models import Post, InstagramConnection, Topic
+
+
+@admin.register(Topic)
+class TopicAdmin(admin.ModelAdmin):
+    list_display = ("name", "created_at", "updated_at")
+    search_fields = ("name",)
 
 
 @admin.register(Post)

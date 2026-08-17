@@ -5,7 +5,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.conf import settings as django_settings
 from datetime import timedelta
-from posts.models import Post, InstagramConnection
+from posts.models import Post, InstagramConnection, Topic
 from posts.services import PostService, InstagramConnectionService
 import logging
 import requests
@@ -233,7 +233,7 @@ def schedule_delete_view(request, pk):
 
 @login_required
 def generate_view(request):
-    from posts.services import TOPICS
+    topics = list(Topic.objects.values_list("name", flat=True))
     
     result = None
     error = None
@@ -244,6 +244,8 @@ def generate_view(request):
         
         if custom_topic:
             topic = custom_topic
+            Topic.objects.get_or_create(name=topic)
+            topics = list(Topic.objects.values_list("name", flat=True))
         elif not topic:
             error = "Please select or enter a topic"
         else:
@@ -276,7 +278,7 @@ def generate_view(request):
                 logger.error(f"Generate failed: {e}")
     
     context = {
-        "topics": TOPICS,
+        "topics": topics,
         "result": result,
         "error": error,
     }

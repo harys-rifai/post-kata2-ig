@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Approval{% endblock %}
+{% block content %}
+<div class="header">
+    <h1>Approval</h1>
+    <div class="user-info">
+        <span>Welcome, {{ request.user.username }}</span>
+        <a href="/logout/">Logout</a>
+    </div>
+</div>
+
+<div class="content-card">
+    <h2>Pending Approval</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Topic</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in pending_posts %}
+            <tr>
+                <td>{{ post.title }}</td>
+                <td>{{ post.topic }}</td>
+                <td>
+                    <span class="status {{ post.status }}">
+                        {{ post.get_status_display }}
+                    </span>
+                </td>
+                <td>{{ post.created_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    <a href="/approval/approve/{{ post.id }}/" class="btn btn-success" style="padding: 6px 12px; font-size: 12px;">Approve</a>
+                    <a href="/approval/reject/{{ post.id }}/" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;">Reject</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="empty-state">
+                    No posts pending approval.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
