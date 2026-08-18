@@ -23,6 +23,12 @@ class Post(models.Model):
         ("published", "Published"),
         ("failed", "Failed"),
     )
+    
+    CATEGORY_CHOICES = (
+        ("hidup", "Hidup"),
+        ("ai", "AI & Teknologi"),
+        ("astrology", "Astrologi & Kosmologi"),
+    )
 
     title = models.CharField(max_length=255)
     topic = models.TextField()
@@ -32,6 +38,7 @@ class Post(models.Model):
     image = models.ImageField(upload_to="posts/", blank=True, null=True)
     publish_at = models.DateTimeField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default="hidup")
     retry_count = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(10)])
     error_message = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

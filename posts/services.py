@@ -28,6 +28,7 @@ class PostService:
             caption=result.get("caption", ""),
             hashtags=result.get("hashtags", ""),
             image_prompt=result.get("image_prompt", ""),
+            category=result.get("category", "hidup"),
             status="generated",
         )
         return post
@@ -45,13 +46,13 @@ class PostService:
             # Handle quota errors specifically
             if "No credentials" in str(e) or "Provider" in str(e) and "does not support" in str(e):
                 # Fallback to placeholder image
-                return PostService._generate_placeholder_image(post.title or post.topic)
+                return PostService._generate_placeholder_image(post.title or post.topic, post.category)
             else:
                 raise
         except Exception as e:
             post.error_message = str(e)
             try:
-                image_data = PostService._generate_placeholder_image(post.title or post.topic)
+                image_data = PostService._generate_placeholder_image(post.title or post.topic, post.category)
                 filename = f"post_{post.id}_{timezone.now().strftime('%Y%m%d%H%M%S')}.png"
                 post.image.save(filename, ContentFile(image_data), save=False)
                 post.save()
