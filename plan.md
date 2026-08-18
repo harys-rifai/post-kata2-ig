@@ -122,7 +122,7 @@ HOST=localhost
 PORT=5008
 NAME=instagram_ai
 USER=postgres
-PASSWORD=YOUR_DATABASE_PASSWORD
+PASSWORD=Password09!
 ```
 
 Create Database
