@@ -5,7 +5,7 @@
     <h1>Settings</h1>
     <div class="user-info">
         <span>Welcome, {{ request.user.username }}</span>
-                <a href="/logout/">Logout</a>
+        <a href="/logout/">Logout</a>
     </div>
 </div>
 
@@ -104,11 +104,55 @@
 </div>
 
 <div class="content-card">
-    <h2>Actions</h2>
-    <div class="action-buttons">
-        <a href="/generate/" class="btn btn-primary">Generate Content</a>
-        <a href="/posts/" class="btn btn-success">View Posts</a>
-        <a href="/schedule/" class="btn btn-primary">Schedule</a>
-    </div>
+    <h2>Instagram Publishing Stats</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Total Published to IG</td>
+                <td>{{ published_posts }}</td>
+            </tr>
+            <tr>
+                <td>Failed Posts</td>
+                <td>{{ failed_posts }}</td>
+            </tr>
+            <tr>
+                <td>Scheduled Posts</td>
+                <td>{{ scheduled_posts }}</td>
+            </tr>
+            <tr>
+                <td>Success Rate</td>
+                <td>{{ success_rate }}%</td>
+            </tr>
+            <tr>
+                <td>Recent Published (Last 7 days)</td>
+                <td>{{ recent_published_count }}</td>
+            </tr>
+        </tbody>
+    </table>
+    {% if recent_published_posts %}
+    <h3 style="margin-top: 20px; margin-bottom: 10px;">Recent Published Posts</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Published At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for post in recent_published_posts %}
+            <tr>
+                <td>{{ post.title }}</td>
+                <td>{{ post.updated_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
 </div>
 {% endblock %}

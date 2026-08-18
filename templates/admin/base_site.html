@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load i18n static %}
+
+{% block extrahead %}
+<link rel="stylesheet" href="{% static 'admin/css/base.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/nav_sidebar.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/responsive.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/widgets.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/login.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/rtl.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/reset_buttons.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/autocomplete.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/filter.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/actions.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/change_list.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/change_form.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/delete_confirmation.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/inlines.css' %}">
+<link rel="stylesheet" href="{% static 'admin/css/related_widget_wrapper.css' %}">
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    {{ block.super }}
+</div>
+{% endblock %}

@@ -251,14 +251,19 @@ def generate_view(request):
         else:
             try:
                 post = PostService.generate_content(topic)
-                has_image = PostService.generate_image_for_post(post)
+                # Save post automatically
                 post.save()
-                result = {
-                    "title": post.title,
-                    "has_image": has_image,
-                    "post_id": post.id,
-                }
+                has_image = PostService.generate_image_for_post(post)
                 logger.info(f"User {request.user.username} generated post: {post.id}")
+                result = {
+                    "post_id": post.id,
+                    "title": post.title,
+                    "topic": post.topic,
+                    "status": post.status,
+                    "has_image": has_image,
+                    "caption": post.caption,
+                    "hashtags": post.hashtags,
+                }
             except requests.exceptions.ConnectionError as e:
                 error = "Cannot connect to AI Router at http://localhost:20128/v1. Make sure it's running."
                 logger.error(f"AI Router connection failed: {e}")
@@ -291,6 +296,21 @@ def settings_view(request):
     
     ig_connection = InstagramConnectionService.get_active_connection()
     
+    # Get stats for display
+    total_posts = Post.objects.count()
+    published_posts = Post.objects.filter(status="published").count()
+    failed_posts = Post.objects.filter(status="failed").count()
+    scheduled_posts = Post.objects.filter(status="scheduled").count()
+    success_rate = (published_posts / total_posts * 100) if total_posts > 0 else 0
+    
+    # Get recent published posts (last 7 days)
+    week_ago = timezone.now() - timedelta(days=7)
+    recent_published_posts = Post.objects.filter(
+        status="published",
+        updated_at__gte=week_ago
+    ).order_by("-updated_at")[:5]
+    recent_published_count = recent_published_posts.count()
+    
     context = {
         "ai_api_base": django_settings.AI_API_BASE,
         "ai_model": django_settings.AI_MODEL,
@@ -301,6 +321,13 @@ def settings_view(request):
         "db_port": django_settings.DATABASES["default"]["PORT"],
         "redis_url": django_settings.CELERY_BROKER_URL,
         "ig_connection": ig_connection,
+        "total_posts": total_posts,
+        "published_posts": published_posts,
+        "failed_posts": failed_posts,
+        "scheduled_posts": scheduled_posts,
+        "success_rate": round(success_rate, 1),
+        "recent_published_posts": recent_published_posts,
+        "recent_published_count": recent_published_count,
     }
     return render(request, "settings.html", context)
 

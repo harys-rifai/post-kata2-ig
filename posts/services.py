@@ -78,22 +78,8 @@ class PostService:
 
     @staticmethod
     def _generate_placeholder_image(text):
-        img = PILImage.new("RGB", (1024, 1024), color=(50, 50, 50))
-        from PIL import ImageDraw, ImageFont
-        draw = ImageDraw.Draw(img)
-        try:
-            font = ImageFont.truetype("arial.ttf", 60)
-        except Exception:
-            font = ImageFont.load_default()
-        bbox = draw.textbbox((0, 0), text, font=font)
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
-        x = (1024 - text_width) / 2
-        y = (1024 - text_height) / 2
-        draw.text((x, y), text, fill=(255, 255, 255), font=font)
-        buffer = BytesIO()
-        img.save(buffer, format="PNG", optimize=True)
-        return buffer.getvalue()
+        img_data, _ = AIService._generate_placeholder_image(text)
+        return img_data
 
     @staticmethod
     def schedule_post(post, publish_at):
