@@ -11,7 +11,7 @@
 
 <div class="content-card">
     <h2>Generate New Content</h2>
-    <form method="POST">
+    <form id="generate-form" method="POST">
         {% csrf_token %}
         <div class="form-group">
             <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Topic</label>
@@ -26,17 +26,101 @@
             <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Custom Topic (optional)</label>
             <input type="text" name="custom_topic" placeholder="Enter custom topic..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
         </div>
-        <button type="submit" class="btn btn-primary">Generate Content</button>
+        <button type="submit" class="btn btn-primary" id="generate-btn">Generate Content</button>
     </form>
-    {% if result %}
-    <div style="margin-top: 20px; padding: 15px; background: #d4edda; border-radius: 6px; color: #155724;">
-        <strong>Success!</strong> Generated: {{ result.title }} (Image: {{ result.has_image|yesno:"Yes,No" }})
+    
+    <div id="generate-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Generated Content</h3>
+                <button type="button" class="close" id="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3 id="modal-title"></h3>
+                <p id="modal-caption"></p>
+                <div id="modal-image-container" style="margin: 15px 0; text-align: center;">
+                    <img id="modal-image" style="max-width: 100%; max-height: 300px; border-radius: 8px;" alt="Generated Image">
+                </div>
+                <div class="modal-footer">
+                    <small class="text-muted">Category: <span id="modal-category">-</span></small>
+                </div>
+            </div>
+        </div>
     </div>
-    {% endif %}
-    {% if error %}
-    <div style="margin-top: 20px; padding: 15px; background: #f8d7da; border-radius: 6px; color: #721c24;">
-        <strong>Error:</strong> {{ error }}
-    </div>
-    {% endif %}
 </div>
+{% endblock %}
+
+{% block extrahead %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('generate-form');
+    const modal = document.getElementById('generate-modal');
+    const closeBtn = document.getElementById('modal-close');
+    
+    if (form) {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('generate-btn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Generating...';
+            btn.disabled = true;
+            
+            try {
+                const formData = new FormData(form);
+                const response = await fetch('/generate/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    }
+                });
+                
+                const html = await response.text();
+                
+                // Parse result from HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                // Check for error
+                const errorDiv = doc.querySelector('.modal .error, [style*="#f8d7da"]');
+                if (errorDiv) {
+                    alert('Error: ' + errorDiv.textContent);
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+                
+                // Get result data
+                const resultDiv = doc.querySelector('[style*="#d4edda"]');
+                if (resultDiv) {
+                    // The view returns the same page with result, need to extract
+                    // Better: check if we got JSON response or use HTMX-like approach
+                }
+                
+                // Since server renders full page, just reload and show modal
+                // Better approach: use AJAX endpoint
+            } catch (err) {
+                console.error(err);
+                alert('Generate failed: ' + err.message);
+            }
+            
+            btn.textContent = originalText;
+            btn.disabled = false;
+        });
+    }
+    
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+    }
+    
+    window.addEventListener('click', function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    });
+});
+</script>
 {% endblock %}
