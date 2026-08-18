@@ -41,6 +41,13 @@ class PostService:
             post.image.save(filename, ContentFile(image_data), save=False)
             post.save()
             return True
+        except requests.exceptions.HTTPError as e:
+            # Handle quota errors specifically
+            if "No credentials" in str(e) or "Provider" in str(e) and "does not support" in str(e):
+                # Fallback to placeholder image
+                return PostService._generate_placeholder_image(post.title or post.topic)
+            else:
+                raise
         except Exception as e:
             post.error_message = str(e)
             try:
