@@ -41,7 +41,8 @@
                 <td>{{ post.retry_count }}</td>
                 <td>{{ post.created_at|date:"Y-m-d H:i" }}</td>
                 <td>
-                    <a href="/schedule/delete/{{ post.id }}/" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Unschedule this post?')">Unschedule</a>
+                    <a href="/schedule/publish/{{ post.id }}/" class="btn btn-success" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Publish this post now?')">Publish Now</a>
+                    <a href="/schedule/delete/{{ post.id }}/" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px; margin-left: 5px;" onclick="return confirm('Unschedule this post?')">Unschedule</a>
                 </td>
             </tr>
             {% empty %}
@@ -65,6 +66,7 @@
                 <th>Error</th>
                 <th>Retry</th>
                 <th>Updated</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -75,10 +77,13 @@
                 <td>{{ post.error_message|default:"-" }}</td>
                 <td>{{ post.retry_count }}</td>
                 <td>{{ post.updated_at|date:"Y-m-d H:i" }}</td>
+                <td>
+                    <a href="/schedule/retry/{{ post.id }}/" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Retry publishing this post now?')">Retry Now</a>
+                </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5" class="empty-state">
+                <td colspan="6" class="empty-state">
                     No failed posts. Great!
                 </td>
             </tr>

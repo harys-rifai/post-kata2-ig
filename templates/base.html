@@ -205,71 +205,411 @@
             gap: 10px;
             margin-bottom: 20px;
         }
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
+        /* ============================================
+           PROFESSIONAL COLOR PALETTE
+           ============================================ */
+           :root {
+            --primary: #667eea;
+            --primary-dark: #5568d3;
+            --secondary: #764ba2;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --light-gray: #e9ecef;
+            --gradient-start: #667eea;
+            --gradient-end: #764ba2;
+            --bg-section: #ffffff;
+            --bg-card: #f8f9fc;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
         }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 10% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 600px;
+        
+        /* ============================================
+           PAGE LAYOUT
+           ============================================ */
+           body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Header */
+        .page-header {
+            background: white;
+            padding: 30px 0 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .page-header .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-left: 250px;
+        }
+        
+        .user-info .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient-start);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .user-info span {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .btn-logout {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            padding: 5px 10px;
+        }
+        
+        /* Settings Grid */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+            max-width: 1400px;
+        }
+        
+        @media (min-width: 768px) {
+            .settings-grid {
+                grid-template-columns: 2fr 1fr 1fr;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .settings-grid {
+                grid-template-columns: 3fr 2fr 2fr 1fr;
+            }
+        }
+        
+        /* Settings Section */
+        .settings-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        
+        .section-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .section-icon {
+            width: 36px;
+            height: 36px;
             border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
         }
-        .modal-header {
+        
+        .section-head h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        /* Config List */
+        .config-list {
+            margin-top: 10px;
+        }
+        
+        .config-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
         }
-        .modal-header h3 {
-            color: #333;
+        
+        .config-row:last-child {
+            border-bottom: none;
         }
-        .close {
-            color: #aaa;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
+        
+        .config-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .close:hover {
-            color: #333;
+        
+        .config-value {
+            color: var(--text-primary);
+            font-size: 0.95rem;
         }
-        .modal-body h3 {
-            margin-bottom: 10px;
+        
+        .config-value.mono {
+            background: var(--light-gray);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.8rem;
         }
-        .modal-body p {
-            margin-bottom: 10px;
-            color: #555;
-            line-height: 1.6;
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
         }
-        .modal-footer {
-            border-top: 1px solid #eee;
-            padding-top: 10px;
-            color: #999;
+        
+        .badge-blue { background: #e3f2fd; color: var(--primary); }
+        .badge-purple { background: #f3e5f5; color: var(--secondary); }
+        .badge-green { background: #e8f5e9; color: var(--success); }
+        
+        /* Schedule Grid */
+        .schedule-grid {
+            display: grid;
+            gap: 12px;
         }
-        /* Quote card styles for posts page */
-        .quote-card {
+        
+        .schedule-item {
+            background: var(--bg-section);
+            padding: 12px 16px;
             border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
         }
-        .quote-card img {
-            width: 100%;
+        
+        .schedule-time {
+            color: var(--primary);
+            font-weight: 600;
+            min-width: 50px;
+        }
+        
+        /* Instagram Status Card */
+        .ig-status-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        }
+        
+        .ig-user {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .ig-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background: var(--light-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+        
+        .ig-username {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .ig-status-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .status-dot.status-connected { background: var(--success); box-shadow: 0 0 6px var(--success); }
+        .status-dot.status-disconnected { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+        .status-dot.status-checking { background: var(--warning); box-shadow: 0 0 6px var(--warning); }
+        
+        .status-text {
+            color: var(--text-secondary);
+        }
+        
+        .ig-meta {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .ig-error {
+            background: #f8d7da;
+            border-radius: 6px;
+            padding: 10px 15px;
+            margin-top: 10px;
+            color: var(--danger);
+            font-size: 0.85rem;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat-box {
+            background: var(--bg-section);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        
+        .stat-box:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-num {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary);
             display: block;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Recent Posts */
+        .recent-posts h3 {
+            margin: 0 0 15px 0;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .recent-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .recent-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.85rem;
+        }
+        
+        .recent-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recent-title {
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60%;
+        }
+        
+        .recent-date {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
         }
     </style>
-</head>
-<body>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mobile sidebar toggle (simple)
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        
+        // Initialize tooltips for any elements with data-tooltip attribute
+        const tooltips = document.querySelectorAll('[data-tooltip]');
+        tooltips.forEach(el => {
+            el.addEventListener('mouseenter', function() {
+                const tooltipText = this.getAttribute('data-tooltip');
+                const tooltip = document.createElement('div');
+                tooltip.className = 'custom-tooltip';
+                tooltip.textContent = tooltipText;
+                document.body.appendChild(tooltip);
+                
+                const rect = this.getBoundingClientRect();
+                tooltip.style.left = (rect.left + window.scrollX) + 'px';
+                tooltip.style.top = (rect.bottom + window.scrollY + 10) + 'px';
+                
+                setTimeout(() => {
+                    document.body.removeChild(tooltip);
+                }, 2000);
+            });
+        });
+        
+        // Add ripple effect to buttons on focus
+        const buttons = document.querySelectorAll('button:not(.btn-logout)');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const ripple = document.createElement('span');
+                ripple.style.position = 'absolute';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.style.width = '10px';
+                ripple.style.height = '10px';
+                ripple.style.borderRadius = '50%';
+                ripple.style.background = 'rgba(255,255,255,0.5)';
+                ripple.style.pointerEvents = 'none';
+                ripple.style.animation = 'ripple 0.6s ease-out';
+                
+                this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+                
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+    });
+    </script>
     <aside class="sidebar">
         <div class="sidebar-header">
             <h2>📸 Instagram AI</h2>
@@ -312,6 +652,15 @@
     </aside>
     
     <main class="main-content">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="message message-{{ message.tags }}" style="padding: 12px 16px; margin-bottom: 16px; border-radius: 6px; background: {% if message.tags == 'success' %}#d4edda{% elif message.tags == 'error' %}#f8d7da{% else %}#d1ecf1{% endif %}; color: {% if message.tags == 'success' %}#155724{% elif message.tags == 'error' %}#721c24{% else %}#0c5460{% endif %};">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
         {% block content %}
         {% endblock %}
         {% block extrahead %}{% endblock %}

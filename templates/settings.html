@@ -1,158 +1,155 @@
 {% extends 'base.html' %}
 {% block title %}Settings{% endblock %}
 {% block content %}
-<div class="header">
-    <h1>Settings</h1>
+<div class="page-header">
+    <div>
+        <h1>Settings</h1>
+        <p class="page-subtitle">System configuration and Instagram connection</p>
+    </div>
     <div class="user-info">
-        <span>Welcome, {{ request.user.username }}</span>
-        <a href="/logout/">Logout</a>
+        <span class="user-avatar">{{ request.user.username|first|upper }}</span>
+        <span>{{ request.user.username }}</span>
+        <a href="/logout/" class="btn-logout">Logout</a>
     </div>
 </div>
 
-<div class="content-card">
-    <h2>Configuration</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Setting</th>
-                <th>Value</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>AI API Base</td>
-                <td>{{ ai_api_base }}</td>
-            </tr>
-            <tr>
-                <td>AI Model</td>
-                <td>{{ ai_model }}</td>
-            </tr>
-            <tr>
-                <td>AI Image Model</td>
-                <td>{{ ai_image_model }}</td>
-            </tr>
-            <tr>
-                <td>Instagram Username</td>
-                <td>{{ instagram_username }}</td>
-            </tr>
-            <tr>
-                <td>Database</td>
-                <td>{{ db_name }}@{{ db_host }}:{{ db_port }}</td>
-            </tr>
-            <tr>
-                <td>Redis</td>
-                <td>{{ redis_url }}</td>
-            </tr>
-            <tr>
-                <td>Celery Beat Schedule</td>
-                <td>
-                    Morning: 08:00<br>
-                    Afternoon: 13:00<br>
-                    Night: 20:00<br>
-                    Generate: 07:30<br>
-                    Retry: 06:00
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
+<div class="settings-grid">
+    <div class="settings-section">
+        <div class="section-head">
+            <span class="section-icon">⚙️</span>
+            <h2>Configuration</h2>
+        </div>
+        <div class="config-list">
+            <div class="config-row">
+                <span class="config-label">AI API Base</span>
+                <span class="config-value mono">{{ ai_api_base }}</span>
+            </div>
+            <div class="config-row">
+                <span class="config-label">AI Model</span>
+                <span class="config-value"><span class="badge badge-blue">{{ ai_model }}</span></span>
+            </div>
+            <div class="config-row">
+                <span class="config-label">AI Image Model</span>
+                <span class="config-value"><span class="badge badge-purple">{{ ai_image_model }}</span></span>
+            </div>
+            <div class="config-row">
+                <span class="config-label">Instagram Username</span>
+                <span class="config-value"><span class="badge badge-green">@{{ instagram_username }}</span></span>
+            </div>
+            <div class="config-row">
+                <span class="config-label">Database</span>
+                <span class="config-value mono">{{ db_name }}@{{ db_host }}:{{ db_port }}</span>
+            </div>
+            <div class="config-row">
+                <span class="config-label">Redis</span>
+                <span class="config-value mono">{{ redis_url }}</span>
+            </div>
+        </div>
+    </div>
 
-<div class="content-card">
-    <h2>Instagram Connection</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Setting</th>
-                <th>Value</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Username</td>
-                <td>{{ instagram_username }}</td>
-            </tr>
-            <tr>
-                <td>Status</td>
-                <td>
-                    {% if ig_connection %}
-                        <span class="status {{ ig_connection.status }}">
-                            {{ ig_connection.get_status_display }}
-                        </span>
-                    {% else %}
-                        <span class="status disconnected">Not checked</span>
-                    {% endif %}
-                </td>
-            </tr>
+    <div class="settings-section">
+        <div class="section-head">
+            <span class="section-icon">📅</span>
+            <h2>Celery Beat Schedule</h2>
+        </div>
+        <div class="schedule-grid">
+            <div class="schedule-item">
+                <span class="schedule-time">07:30</span>
+                <span class="schedule-label">Generate</span>
+            </div>
+            <div class="schedule-item">
+                <span class="schedule-time">06:00</span>
+                <span class="schedule-label">Retry</span>
+            </div>
+            <div class="schedule-item">
+                <span class="schedule-time">08:00</span>
+                <span class="schedule-label">Morning Post</span>
+            </div>
+            <div class="schedule-item">
+                <span class="schedule-time">13:00</span>
+                <span class="schedule-label">Afternoon Post</span>
+            </div>
+            <div class="schedule-item">
+                <span class="schedule-time">20:00</span>
+                <span class="schedule-label">Night Post</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="settings-section">
+        <div class="section-head">
+            <span class="section-icon">📸</span>
+            <h2>Instagram Connection</h2>
+        </div>
+        <div class="ig-status-card">
+            <div class="ig-user">
+                <span class="ig-avatar">📷</span>
+                <div>
+                    <div class="ig-username">@{{ instagram_username }}</div>
+                    <div class="ig-status-line">
+                        {% if ig_connection %}
+                            <span class="status-dot status-{{ ig_connection.status }}"></span>
+                            <span class="status-text">{{ ig_connection.get_status_display }}</span>
+                        {% else %}
+                            <span class="status-dot status-disconnected"></span>
+                            <span class="status-text">Not checked</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
             {% if ig_connection and ig_connection.last_login %}
-            <tr>
-                <td>Last Login</td>
-                <td>{{ ig_connection.last_login|date:"Y-m-d H:i" }}</td>
-            </tr>
+            <div class="ig-meta">
+                <span>Last login: {{ ig_connection.last_login|date:"Y-m-d H:i" }}</span>
+            </div>
             {% endif %}
             {% if ig_connection and ig_connection.last_error %}
-            <tr>
-                <td>Last Error</td>
-                <td style="color: #dc3545;">{{ ig_connection.last_error }}</td>
-            </tr>
+            <div class="ig-error">
+                {{ ig_connection.last_error }}
+            </div>
             {% endif %}
-        </tbody>
-    </table>
-    <form method="POST" action="/settings/test-ig/" style="margin-top: 20px;">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-primary">Test Instagram Connection</button>
-    </form>
-</div>
+            <form method="POST" action="/settings/test-ig/" class="ig-test-form">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary">Test Connection</button>
+            </form>
+        </div>
+    </div>
 
-<div class="content-card">
-    <h2>Instagram Publishing Stats</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Metric</th>
-                <th>Value</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Total Published to IG</td>
-                <td>{{ published_posts }}</td>
-            </tr>
-            <tr>
-                <td>Failed Posts</td>
-                <td>{{ failed_posts }}</td>
-            </tr>
-            <tr>
-                <td>Scheduled Posts</td>
-                <td>{{ scheduled_posts }}</td>
-            </tr>
-            <tr>
-                <td>Success Rate</td>
-                <td>{{ success_rate }}%</td>
-            </tr>
-            <tr>
-                <td>Recent Published (Last 7 days)</td>
-                <td>{{ recent_published_count }}</td>
-            </tr>
-        </tbody>
-    </table>
-    {% if recent_published_posts %}
-    <h3 style="margin-top: 20px; margin-bottom: 10px;">Recent Published Posts</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Published At</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for post in recent_published_posts %}
-            <tr>
-                <td>{{ post.title }}</td>
-                <td>{{ post.updated_at|date:"Y-m-d H:i" }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% endif %}
+    <div class="settings-section">
+        <div class="section-head">
+            <span class="section-icon">📊</span>
+            <h2>Publishing Stats</h2>
+        </div>
+        <div class="stats-grid">
+            <div class="stat-box stat-published">
+                <span class="stat-num">{{ published_posts }}</span>
+                <span class="stat-label">Published</span>
+            </div>
+            <div class="stat-box stat-scheduled">
+                <span class="stat-num">{{ scheduled_posts }}</span>
+                <span class="stat-label">Scheduled</span>
+            </div>
+            <div class="stat-box stat-failed">
+                <span class="stat-num">{{ failed_posts }}</span>
+                <span class="stat-label">Failed</span>
+            </div>
+            <div class="stat-box stat-rate">
+                <span class="stat-num">{{ success_rate }}%</span>
+                <span class="stat-label">Success Rate</span>
+            </div>
+        </div>
+        {% if recent_published_posts %}
+        <div class="recent-posts">
+            <h3>Recent Published</h3>
+            <div class="recent-list">
+                {% for post in recent_published_posts %}
+                <div class="recent-item">
+                    <span class="recent-title">{{ post.title }}</span>
+                    <span class="recent-date">{{ post.updated_at|date:"Y-m-d H:i" }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
