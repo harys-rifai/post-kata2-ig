@@ -56,6 +56,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('generate-form');
     const modal = document.getElementById('generate-modal');
     const closeBtn = document.getElementById('modal-close');
+    const modalTitle = document.getElementById('modal-title');
+    const modalCaption = document.getElementById('modal-caption');
+    const modalImage = document.getElementById('modal-image');
+    const modalCategory = document.getElementById('modal-category');
+    const modalImageContainer = document.getElementById('modal-image-container');
     
     if (form) {
         form.addEventListener('submit', async function(e) {
@@ -72,34 +77,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                        'Accept': 'application/json'
                     }
                 });
                 
-                const html = await response.text();
+                const result = await response.json();
                 
-                // Parse result from HTML
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                
-                // Check for error
-                const errorDiv = doc.querySelector('.modal .error, [style*="#f8d7da"]');
-                if (errorDiv) {
-                    alert('Error: ' + errorDiv.textContent);
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                    return;
+                if (result.success) {
+                    const data = result.data;
+                    modalTitle.textContent = data.title || 'Generated Content';
+                    modalCaption.textContent = data.caption || 'No caption available';
+                    
+                    // Update category
+                    const category = data.category || data.topic || '-';
+                    modalCategory.textContent = category.toUpperCase();
+                    
+                    // Show image if exists
+                    if (data.has_image) {
+                        // We need to get the actual image URL from the post
+                        // For now, we'll show a placeholder or we could make another call
+                        modalImageContainer.innerHTML = '<div style="width:100%; height:200px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#666;">Image Generated</div>';
+                    } else {
+                        modalImageContainer.innerHTML = '<div style="width:100%; height:200px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; color:#666;">No Image</div>';
+                    }
+                    
+                    modal.style.display = 'block';
+                } else {
+                    alert('Error: ' + (result.error || 'Unknown error'));
                 }
-                
-                // Get result data
-                const resultDiv = doc.querySelector('[style*="#d4edda"]');
-                if (resultDiv) {
-                    // The view returns the same page with result, need to extract
-                    // Better: check if we got JSON response or use HTMX-like approach
-                }
-                
-                // Since server renders full page, just reload and show modal
-                // Better approach: use AJAX endpoint
             } catch (err) {
                 console.error(err);
                 alert('Generate failed: ' + err.message);

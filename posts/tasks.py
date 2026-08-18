@@ -51,6 +51,8 @@ def retry_failed_posts():
     failed_posts = Post.objects.filter(status="failed", retry_count__lt=10)
     results = []
     for post in failed_posts:
+        if not PostService.should_retry(post):
+            continue
         try:
             PostService.mark_posting(post)
             from ai.services import InstagramAutomationService
