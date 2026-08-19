@@ -3,8 +3,8 @@
 {% block breadcrumb %}<span class="current">Posts</span>{% endblock %}
 {% block content %}
 <div class="action-buttons">
-    <a href="/posts/create/" class="btn btn-primary">+ Create Post</a>
-    <a href="/generate/" class="btn btn-success">✨ Generate AI</a>
+    <button type="button" class="btn btn-primary" id="open-create-modal">+ Create Post</button>
+    <button type="button" class="btn btn-success" id="open-generate-modal">✨ Generate AI</button>
 </div>
 
 <div class="posts-grid">
@@ -49,4 +49,247 @@
     </div>
     {% endfor %}
 </div>
+
+<!-- Create Post Modal -->
+<div id="create-modal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3>Create Post</h3>
+            <button type="button" class="close" id="create-modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="create-form" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Title *</label>
+                    <input type="text" name="title" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Topic *</label>
+                    <input type="text" name="topic" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Caption</label>
+                    <textarea name="caption" rows="3" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Hashtags</label>
+                    <textarea name="hashtags" rows="2" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Image Prompt</label>
+                    <textarea name="image_prompt" rows="2" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Publish At</label>
+                    <input type="datetime-local" name="publish_at" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Status</label>
+                    <select name="status" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                        <option value="draft">Draft</option>
+                        <option value="generated">Generated</option>
+                        <option value="scheduled">Scheduled</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary" id="create-btn">Save</button>
+                <button type="button" class="btn" style="background: #6c757d; color: white; margin-left: 10px;" id="create-modal-cancel">Cancel</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Generate AI Modal -->
+<div id="generate-modal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3>Generate AI Content</h3>
+            <button type="button" class="close" id="generate-modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="generate-form" method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Topic</label>
+                    <select name="topic" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                        <option value="">-- Select Topic --</option>
+                        {% for t in topics %}
+                        <option value="{{ t }}">{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Custom Topic (optional)</label>
+                    <input type="text" name="custom_topic" placeholder="Enter custom topic..." style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                </div>
+                <button type="submit" class="btn btn-primary" id="generate-btn">Generate Content</button>
+                <button type="button" class="btn" style="background: #6c757d; color: white; margin-left: 10px;" id="generate-modal-cancel">Cancel</button>
+            </form>
+            <div id="generate-result" style="margin-top: 20px; display: none;">
+                <h4>Generated Result</h4>
+                <div id="generate-result-content"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrahead %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const createModal = document.getElementById('create-modal');
+    const createForm = document.getElementById('create-form');
+    const createBtn = document.getElementById('create-btn');
+    const openCreateBtn = document.getElementById('open-create-modal');
+
+    const generateModal = document.getElementById('generate-modal');
+    const generateForm = document.getElementById('generate-form');
+    const generateBtn = document.getElementById('generate-btn');
+    const openGenerateBtn = document.getElementById('open-generate-modal');
+    const generateResult = document.getElementById('generate-result');
+    const generateResultContent = document.getElementById('generate-result-content');
+
+    function openModal(modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    if (openCreateBtn && createModal) {
+        openCreateBtn.addEventListener('click', function() {
+            openModal(createModal);
+        });
+    }
+
+    if (document.getElementById('create-modal-close')) {
+        document.getElementById('create-modal-close').addEventListener('click', function() {
+            closeModal(createModal);
+        });
+    }
+
+    if (document.getElementById('create-modal-cancel')) {
+        document.getElementById('create-modal-cancel').addEventListener('click', function() {
+            closeModal(createModal);
+        });
+    }
+
+    if (openGenerateBtn && generateModal) {
+        openGenerateBtn.addEventListener('click', function() {
+            openModal(generateModal);
+        });
+    }
+
+    if (document.getElementById('generate-modal-close')) {
+        document.getElementById('generate-modal-close').addEventListener('click', function() {
+            closeModal(generateModal);
+        });
+    }
+
+    if (document.getElementById('generate-modal-cancel')) {
+        document.getElementById('generate-modal-cancel').addEventListener('click', function() {
+            closeModal(generateModal);
+        });
+    }
+
+    window.addEventListener('click', function(event) {
+        if (event.target == createModal) {
+            closeModal(createModal);
+        }
+        if (event.target == generateModal) {
+            closeModal(generateModal);
+        }
+    });
+
+    if (createForm) {
+        createForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const originalText = createBtn.textContent;
+            createBtn.textContent = 'Saving...';
+            createBtn.disabled = true;
+            
+            try {
+                const formData = new FormData(createForm);
+                const response = await fetch('/posts/create/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (result.error || 'Failed to create post'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Create failed: ' + err.message);
+            }
+            
+            createBtn.textContent = originalText;
+            createBtn.disabled = false;
+        });
+    }
+
+    if (generateForm) {
+        generateForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const originalText = generateBtn.textContent;
+            generateBtn.textContent = 'Generating...';
+            generateBtn.disabled = true;
+            generateResult.style.display = 'none';
+            
+            try {
+                const formData = new FormData(generateForm);
+                const response = await fetch('/generate/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const data = result.data;
+                    generateResultContent.innerHTML = `
+                        <p><strong>Title:</strong> ${data.title || '-'}</p>
+                        <p><strong>Topic:</strong> ${data.topic || '-'}</p>
+                        <p><strong>Category:</strong> ${(data.category || '-').toUpperCase()}</p>
+                        <p><strong>Status:</strong> ${data.status || '-'}</p>
+                        <p><strong>Image:</strong> ${data.has_image ? 'Yes' : 'No'}</p>
+                        <hr style="margin: 15px 0; border: none; border-top: 1px solid #dee2e6;">
+                        <p><strong>Caption:</strong></p>
+                        <p style="white-space: pre-wrap; background: #f8f9fa; padding: 10px; border-radius: 6px;">${data.caption || ''}</p>
+                        <p><strong>Hashtags:</strong></p>
+                        <p style="color: #667eea;">${data.hashtags || ''}</p>
+                    `;
+                    generateResult.style.display = 'block';
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    alert('Error: ' + (result.error || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Generate failed: ' + err.message);
+            }
+            
+            generateBtn.textContent = originalText;
+            generateBtn.disabled = false;
+        });
+    }
+});
+</script>
 {% endblock %}

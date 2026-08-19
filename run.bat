@@ -3,10 +3,6 @@ echo ===================================
 echo START DJANGO INSTAGRAM AI
 echo ===================================
 
-set REDIS_URL=redis://:Password09!@localhost:6379/0
-set CELERY_BROKER_URL=%REDIS_URL%
-set CELERY_RESULT_BACKEND=%REDIS_URL%
-
 echo Killing existing processes...
 taskkill /F /IM redis-server.exe >nul 2>nul
 taskkill /F /FI "IMAGENAME eq python.exe" /FI "WINDOWTITLE eq *celery*" /F >nul 2>nul

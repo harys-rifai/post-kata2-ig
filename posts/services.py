@@ -8,7 +8,9 @@ from django.utils import timezone
 from django.core.files.base import ContentFile
 from PIL import Image as PILImage
 from io import BytesIO
-from .models import Post, InstagramConnection, Topic
+from django.contrib.auth import get_user_model
+User = get_user_model()
+from .models import Post, InstagramConnection, Topic, Notification
 from ai.services import AIService, InstagramAutomationService
 
 
@@ -206,3 +208,25 @@ class InstagramConnectionService:
             return False, "Login failed"
         except Exception as e:
             return False, str(e)
+
+
+class NotificationService:
+    @staticmethod
+    def create_notification(user, title, message, level="info"):
+        Notification.objects.create(
+            user=user,
+            title=title,
+            message=message,
+            level=level,
+        )
+
+    @staticmethod
+    def create_system_notification(title, message, level="info"):
+        users = User.objects.filter(is_active=True)
+        for user in users:
+            Notification.objects.create(
+                user=user,
+                title=title,
+                message=message,
+                level=level,
+            )

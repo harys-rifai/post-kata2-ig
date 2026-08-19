@@ -1195,10 +1195,31 @@
             {% block breadcrumb %}<span class="current">Dashboard</span>{% endblock %}
         </nav>
         <div class="topbar-right">
-            <a href="/monitoring/" class="notif-btn" title="Notifications">
-                🔔
-                {% if notification_count %}<span class="notif-badge">{{ notification_count }}</span>{% endif %}
-            </a>
+            <div class="user-menu">
+                <button type="button" class="notif-btn" id="notifBtn" title="Notifications">
+                    🔔
+                    {% if notification_count > 0 %}
+                    <span class="notif-badge" id="notifBadge">{{ notification_count }}</span>
+                    {% endif %}
+                </button>
+                <div class="user-dropdown" id="notifDropdown">
+                    <div class="user-dropdown-header">
+                        <span class="user-dropdown-name">Notifications</span>
+                        <span class="user-dropdown-role">{{ notification_count }} unread</span>
+                    </div>
+                    <div id="notifList" style="max-height: 300px; overflow-y: auto;">
+                        {% if notification_count > 0 %}
+                        <a href="{% url 'notifications' %}" class="user-dropdown-item" style="color: var(--primary);">
+                            View all notifications
+                        </a>
+                        {% else %}
+                        <div style="padding: 15px; color: var(--text-secondary); font-size: 0.85rem; text-align: center;">
+                            No new notifications
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
             <div class="user-menu">
                 <button type="button" class="user-menu-btn" id="userMenuBtn">
                     <span class="user-avatar">{{ request.user.username|first|upper }}</span>
@@ -1242,10 +1263,6 @@
                 <span class="nav-icon">✅</span>
                 Approval
             </a>
-            <a href="/monitoring/" class="nav-item {% if request.resolver_match.url_name == 'monitoring' %}active{% endif %}">
-                <span class="nav-icon">📈</span>
-                Monitoring
-            </a>
             <a href="/settings/" class="nav-item {% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
                 <span class="nav-icon">⚙️</span>
                 Settings
@@ -1286,6 +1303,18 @@
             });
             document.addEventListener('click', function() {
                 dd.classList.remove('show');
+            });
+        }
+
+        const notifBtn = document.getElementById('notifBtn');
+        const notifDropdown = document.getElementById('notifDropdown');
+        if (notifBtn && notifDropdown) {
+            notifBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                notifDropdown.classList.toggle('show');
+            });
+            document.addEventListener('click', function() {
+                notifDropdown.classList.remove('show');
             });
         }
     });

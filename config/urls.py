@@ -21,8 +21,9 @@ from config.views import (
     approval_view,
     approve_post_view,
     reject_post_view,
-    monitoring_view,
     health_check_view,
+    notifications_view,
+    mark_notification_read_view,
 )
 from config.test_view import test_category_view
 
@@ -46,8 +47,9 @@ urlpatterns = [
     path("approval/", approval_view, name="approval"),
     path("approval/approve/<int:pk>/", approve_post_view, name="approve_post"),
     path("approval/reject/<int:pk>/", reject_post_view, name="reject_post"),
-    path("monitoring/", monitoring_view, name="monitoring"),
     path("health/", health_check_view, name="health_check"),
+    path("notifications/", notifications_view, name="notifications"),
+    path("notifications/<int:pk>/read/", mark_notification_read_view, name="mark_notification_read"),
     path("admin/", admin.site.urls),
 ]
 

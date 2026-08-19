@@ -1,5 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class Topic(models.Model):
@@ -72,3 +75,25 @@ class InstagramConnection(models.Model):
 
     def __str__(self):
         return f"{self.username} - {self.status}"
+
+
+class Notification(models.Model):
+    LEVEL_CHOICES = (
+        ("info", "Info"),
+        ("success", "Success"),
+        ("warning", "Warning"),
+        ("error", "Error"),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications", null=True, blank=True)
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default="info")
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.title

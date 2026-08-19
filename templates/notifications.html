@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Notifications{% endblock %}
+{% block breadcrumb %}<span class="current">Notifications</span>{% endblock %}
+{% block content %}
+<div class="content-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2>Notifications</h2>
+        {% if unread_count > 0 %}
+        <form method="POST" action="{% url 'mark_all_notifications_read' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Mark all as read</button>
+        </form>
+        {% endif %}
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Title</th>
+                    <th>Message</th>
+                    <th>Level</th>
+                    <th>Time</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for notification in notifications %}
+                <tr style="{% if not notification.is_read %}background: #f0f7ff;{% endif %}">
+                    <td>
+                        {% if notification.is_read %}
+                            <span class="status published">Read</span>
+                        {% else %}
+                            <span class="status generated">Unread</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ notification.title }}</strong></td>
+                    <td>{{ notification.message }}</td>
+                    <td>
+                        {% if notification.level == 'info' %}
+                            <span class="badge badge-blue">INFO</span>
+                        {% elif notification.level == 'success' %}
+                            <span class="badge badge-green">SUCCESS</span>
+                        {% elif notification.level == 'warning' %}
+                            <span class="badge" style="background:#fff3cd;color:#856404;">WARNING</span>
+                        {% elif notification.level == 'error' %}
+                            <span class="badge" style="background:#f8d7da;color:#721c24;">ERROR</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ notification.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        {% if not notification.is_read %}
+                        <a href="{% url 'mark_notification_read' notification.pk %}" class="btn btn-sm btn-outline">Mark read</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state">No notifications yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
