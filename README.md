@@ -1,78 +1,89 @@
 # Instagram AI Auto Post
 
-Sistem otomatis untuk membuat dan mempublikasikan konten Instagram menggunakan AI.
+Sistem otomatis untuk membuat dan mempublikasikan konten Instagram menggunakan AI untuk akun @jakarta24viral.
 
-## Fitur Utama
+## Cara Kerja Aplikasi
 
-- Generate caption Instagram menggunakan AI
-- Generate hashtag otomatis
-- Generate prompt gambar otomatis
-- Generate gambar menggunakan AI
-- Menyimpan histori konten ke PostgreSQL
-- Redis Cache
-- Celery Scheduler
-- Celery Beat
-- Dashboard Django Admin
-- Auto Publish Instagram menggunakan Playwright
-- Approval Workflow
-- Retry Failed Posting
-- Multi Schedule Posting
-- Logging & Monitoring
+Aplikasi ini bekerja dalam 3 tahap utama:
 
-## Target Account
+### 1. Generate Konten dengan AI
 
-Instagram Account
-@jakarta24viral
+- Memilih topik secara acak atau berdasarkan input user (contoh: "Kata Kata Motivasi", "Wisata Jakarta", "AI", dll)
+- Mengirim prompt ke **AI Router** (`http://localhost:20128/v1`) untuk menghasilkan:
+  - **Title** - Judul singkat
+  - **Caption** - Quote/motto dalam Bahasa Indonesia
+  - **Hashtags** - 15 hashtag relevan
+  - **Category** - Kategori konten: `hidup`, `ai`, atau `astrology`
+- Menyimpan hasil ke database PostgreSQL dengan status `generated`
 
-## System Architecture
+### 2. Generate Gambar
+
+Setiap konten dilengkapi gambar otomatis:
+
+- **Primary**: Memanggil AI Image Model (`tokenrouter/google/gemini-2.5-flash-image`) melalui AI Router untuk menghasilkan gambar sesuai `image_prompt`
+- **Fallback**: Jika AI image tidak tersedia atau gagal, sistem otomatis membuat **placeholder image** lokal menggunakan Pillow (PIL):
+  - Ukuran 1024x1024 PNG
+  - Gradient background sesuai kategori:
+    - `hidup` - Gradasi merah/pink dengan label "LIFE QUOTES"
+    - `ai` - Gradasi ungu/cyan dengan label "AI INSIGHT"
+    - `astrology` - Gradasi ungu tua/emas dengan dekorasi bintang dan label "COSMIC WISDOM"
+  - Teks quote yang di-wrap otomatis dengan shadow untuk readability
+  - Dekorasi acak: lingkaran transparan, bintang (astrology), atau circuit dots (ai)
+- Gambar diproses dan di-resize menjadi maksimal 1024x1024 sebelum disimpan ke `media/`
+
+### 3. Auto Publish ke Instagram
+
+- **Celery Beat** menjadwalkan publish otomatis 3x sehari: **08:00**, **13:00**, **20:00**
+- **Celery Worker** mengambil post dengan status `scheduled` yang waktunya sudah tiba
+- Menggunakan **Playwright (Chromium headless)** untuk:
+  - Login ke Instagram dengan session persistence (`storage/instagram_session.json`)
+  - Upload gambar dari `media/`
+  - Isi caption: `title + caption + hashtags`
+  - Klik tombol Share
+- Jika berhasil: status menjadi `published`
+- Jika gagal: status menjadi `failed` dan `retry_count` bertambah
+- **Auto Retry**: Celery Beat juga menjadwalkan retry failed posts setiap hari **06:00** dengan exponential backoff (2^retry_count menit)
+
+## Alur Lengkap
 
 ```text
-Celery Beat
-     │
-     ▼
-Generate Content Schedule
-     │
-     ▼
-AI Router
-(http://localhost:20128/v1)
-     │
-     ▼
-Generate Title
-     │
-     ▼
-Generate Caption
-     │
-     ▼
-Generate Hashtag
-     │
-     ▼
-Generate Image Prompt
-     │
-     ▼
-Generate Image
-     │
-     ▼
-Save to PostgreSQL
-     │
-     ▼
-Celery Worker
-     │
-     ▼
-Publish to Instagram (Playwright)
-     │
-     ▼
-Update Status
+Celery Beat (07:30)
+      │
+      ▼
+Generate Daily Content
+- Pilih 10 topik acak
+- AI Router generate title/caption/hashtags
+- Generate image (AI atau placeholder)
+- Simpan ke PostgreSQL (status: generated)
+      │
+      ▼
+User Approval (opsional)
+- User approve -> scheduled
+- User reject -> draft
+      │
+      ▼
+Celery Beat (08:00 / 13:00 / 20:00)
+      │
+      ▼
+Auto Publish
+- Playwright login Instagram
+- Upload image + caption + hashtags
+- Status: published / failed
+      │
+      ▼
+Celery Beat (06:00 retry)
+- Retry failed posts max 10x
+- Exponential backoff
 ```
 
 ## Tech Stack
 
 - **Backend**: Django 5.0
 - **Database**: PostgreSQL
-- **Cache**: Redis
-- **Task Queue**: Celery + Celery Beat
-- **AI**: OpenAI-compatible API via local AI Router
-- **Automation**: Playwright (Chromium)
-- **Image Processing**: Pillow
+- **Cache & Queue**: Redis + Celery + Celery Beat
+- **AI**: OpenAI-compatible API via AI Router (`http://localhost:20128/v1`)
+- **Automation**: Playwright (Chromium headless)
+- **Image Processing**: Pillow (PIL)
 
 ## Prerequisites
 
@@ -82,7 +93,7 @@ Update Status
 - AI Router running at `http://localhost:20128/v1`
 - Playwright Chromium browser
 
-## Installation
+## Instalasi
 
 1. Clone repository
 2. Install dependencies:
@@ -93,31 +104,30 @@ Update Status
    ```bash
    playwright install chromium
    ```
-4. Configure environment variables in `.env`
-5. Create PostgreSQL database `instagram_ai`
-6. Run migrations:
+4. Configure environment variables di `.env`
+5. Buat database PostgreSQL `instagram_ai`
+6. Jalankan migrasi:
    ```bash
    python manage.py migrate
    ```
-7. Create superuser:
+7. Buat superuser:
    ```bash
    python manage.py createsuperuser
    ```
 
-## Running the Application
+## Menjalankan Aplikasi
 
-### Using run.bat (Windows)
-
-- `run.bat` will try to start Redis from `C:\redis\redis-server.exe` if it is not found in PATH.
-- Make sure `C:\redis\redis.windows.conf` uses the same password as `REDIS_URL` in `.env`.
-- If Redis is already running manually, `run.bat` will reuse it.
-
+### Windows (run.bat)
 ```bash
 run.bat
 ```
 
-### Manual Start
+`run.bat` akan otomatis:
+- Membunuh proses lama
+- Menyalakan Redis dari `C:\redis\redis-server.exe`
+- Menjalankan Celery Worker, Celery Beat, dan Django server di port 809
 
+### Manual
 ```bash
 # Terminal 1 - Redis
 redis-server
@@ -132,148 +142,88 @@ celery -A config beat -l info
 python manage.py runserver 809
 ```
 
-## Access Points
+## Akses
 
-- Main App: `http://127.0.0.1:809/`
-- Admin Panel: `http://127.0.0.1:809/admin/`
+- App: `http://127.0.0.1:809/`
+- Admin: `http://127.0.0.1:809/admin/`
 - Login: `http://127.0.0.1:809/login/`
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
+| Variable | Deskripsi | Default |
+|----------|-----------|---------|
 | `DEBUG` | Django debug mode | `True` |
 | `SECRET_KEY` | Django secret key | - |
-| `DB_NAME` | PostgreSQL database name | `instagram_ai` |
-| `DB_USER` | PostgreSQL username | `postgres` |
-| `DB_PASSWORD` | PostgreSQL password | - |
-| `DB_HOST` | PostgreSQL host | `localhost` |
-| `DB_PORT` | PostgreSQL port | `5008` |
+| `DB_NAME` | Nama database PostgreSQL | `instagram_ai` |
+| `DB_USER` | Username PostgreSQL | `postgres` |
+| `DB_PASSWORD` | Password PostgreSQL | - |
+| `DB_HOST` | Host PostgreSQL | `localhost` |
+| `DB_PORT` | Port PostgreSQL | `5008` |
 | `REDIS_URL` | Redis connection URL | `redis://:Password09!@localhost:6379/0` |
 | `AI_API_BASE` | AI Router base URL | `http://localhost:20128/v1` |
 | `AI_API_KEY` | AI API key | - |
-| `AI_MODEL` | AI model name | `kc/kilo-auto/free` |
-| `AI_IMAGE_MODEL` | AI image model | `tokenrouter/google/gemini-2.5-flash-image` |
+| `AI_MODEL` | AI model untuk text | `kc/kilo-auto/free` |
+| `AI_IMAGE_MODEL` | AI model untuk gambar | `tokenrouter/google/gemini-2.5-flash-image` |
 | `INSTAGRAM_USERNAME` | Instagram username | - |
 | `INSTAGRAM_PASSWORD` | Instagram password | - |
 
 ## Celery Beat Schedule
 
-| Task | Schedule | Description |
-|------|----------|-------------|
-| `morning_post` | 08:00 | Auto publish scheduled posts |
-| `afternoon_post` | 13:00 | Auto publish scheduled posts |
-| `night_post` | 20:00 | Auto publish scheduled posts |
-| `generate_morning_content` | 07:30 | Generate daily content |
-| `retry_failed_posts` | 06:00 | Retry failed posts |
+| Task | Jadwal | Deskripsi |
+|------|--------|-----------|
+| `generate_morning_content` | 07:30 | Generate 10 konten harian |
+| `retry_failed_posts` | 06:00 | Retry post yang gagal |
+| `morning_post` | 08:00 | Publish scheduled posts |
+| `afternoon_post` | 13:00 | Publish scheduled posts |
+| `night_post` | 20:00 | Publish scheduled posts |
 
-## Project Structure
+## Kategori Konten
+
+Aplikasi membuat konten dalam 3 kategori:
+
+| Kategori | Topik | Tema Gambar |
+|----------|-------|-------------|
+| `hidup` | Motivasi, kehidupan, cinta, persahabatan | Gradasi merah/pink |
+| `ai` | Teknologi, AI, robot, machine learning | Gradasi ungu/cyan |
+| `astrology` | Zodiak, horoscope, bintang, ramalan | Gradasi ungu tua/emas + bintang |
+
+## Struktur Project
 
 ```
 post-ig/
 ├── config/
-│   ├── settings.py          # Django settings
+│   ├── settings.py          # Django settings + Celery config
 │   ├── urls.py              # URL routing
-│   ├── wsgi.py              # WSGI application
-│   ├── asgi.py              # ASGI application
 │   ├── celery.py            # Celery app + Beat schedule
-│   └── views.py             # All application views
+│   └── views.py             # Semua views (dashboard, generate, schedule, monitoring)
 ├── posts/
-│   ├── models.py            # Post + InstagramConnection + Topic models
-│   ├── admin.py             # Admin configuration
+│   ├── models.py            # Post, InstagramConnection, Topic
 │   ├── services.py          # PostService + InstagramConnectionService
-│   ├── tasks.py             # Celery tasks
+│   ├── tasks.py             # Celery tasks: generate, auto_publish, retry
 │   └── migrations/          # Database migrations
 ├── ai/
 │   └── services.py          # AIService + InstagramAutomationService
 ├── scheduler/
-│   └── tasks.py             # Daily content generation task
+│   └── tasks.py             # Daily content generation (10 topik)
 ├── templates/
-│   ├── base.html            # Unified sidebar layout
-│   ├── login.html           # Login page
-│   ├── dashboard.html       # Dashboard stats
-│   ├── posts.html           # Posts list
-│   ├── post_form.html       # Create/Edit post
-│   ├── schedule.html        # Scheduled + Failed posts
-│   ├── generate.html        # AI content generation
-│   ├── settings.html        # Config + IG connection
+│   ├── base.html            # Layout utama
+│   ├── dashboard.html       # Statistik
+│   ├── generate.html        # Generate konten AI
+│   ├── settings.html        # Config + test IG connection
 │   ├── approval.html        # Approval workflow
+│   ├── schedule.html        # Scheduled + failed posts
 │   └── monitoring.html      # Monitoring dashboard
-├── storage/
-│   └── instagram_session.json # Session persistence
 ├── media/                   # Uploaded images
 ├── logs/                    # Log files
-├── manage.py
-├── requirements.txt
-├── .env
-├── .gitignore
+├── storage/
+│   └── instagram_session.json # Session persistence Instagram
 └── run.bat                  # Startup script
 ```
 
-## Models
+## Catatan
 
-### Post
-- `title` - Post title
-- `topic` - Post topic/category
-- `caption` - Instagram caption
-- `hashtags` - Instagram hashtags
-- `image_prompt` - AI image generation prompt
-- `image` - Generated image (ImageField)
-- `publish_at` - Scheduled publish datetime
-- `status` - Post status (draft/generated/scheduled/posting/published/failed)
-- `retry_count` - Number of retry attempts
-- `error_message` - Last error message
-
-### InstagramConnection
-- `username` - Instagram username
-- `status` - Connection status
-- `last_login` - Last login timestamp
-- `last_error` - Last error message
-- `is_active` - Active connection flag
-
-### Topic
-- `name` - Topic name (unique)
-- Used for content generation dropdown
-
-## API Endpoints
-
-### Web UI
-- `/` - Dashboard
-- `/login/` - Login page
-- `/logout/` - Logout
-- `/posts/` - Posts list
-- `/posts/create/` - Create post
-- `/posts/edit/<id>/` - Edit post
-- `/posts/delete/<id>/` - Delete post
-- `/schedule/` - Schedule list
-- `/schedule/create/` - Schedule post
-- `/schedule/delete/<id>/` - Unschedule post
-- `/generate/` - Generate AI content
-- `/approval/` - Approval workflow
-- `/approval/approve/<id>/` - Approve post
-- `/approval/reject/<id>/` - Reject post
-- `/monitoring/` - Monitoring dashboard
-- `/health/` - Health check endpoint
-- `/admin/` - Django admin
-
-## Logging
-
-Log files are stored in `logs/` directory:
-- `django.log` - Django application logs
-- `celery.log` - Celery worker/beat logs
-
-## Notes
-
-- AI Router must be running at `http://localhost:20128/v1` for content generation
-- Playwright Chromium must be installed for Instagram automation
-- Redis must be running for Celery worker and beat
-- On Windows, if `redis-server` is not in PATH, place Redis in `C:\redis` so `run.bat` can start it automatically
-- Session persistence for Instagram is stored in `storage/instagram_session.json`
-- The Redis password must match between `.env` (`REDIS_URL`) and `C:\redis\redis.windows.conf` (`requirepass`)
-
-## Security
-
-- Instagram credentials stored in `.env` file
-- Session file should be protected from public access
-- SECRET_KEY should be changed in production
-- Database credentials should be secured
+- AI Router harus berjalan di `http://localhost:20128/v1`
+- Playwright Chromium harus terinstall
+- Redis harus berjalan untuk Celery worker dan beat
+- Session Instagram disimpan di `storage/instagram_session.json`
+- Jika AI Image tidak tersedia, sistem fallback ke placeholder image yang di-generate lokal
