@@ -190,8 +190,30 @@ Output JSON:
 
     @staticmethod
     def generate_image(prompt):
-        # Image API not available in sandbox — use themed placeholder
-        return AIService._generate_placeholder_image(prompt)
+        try:
+            response = requests.post(
+                f"{settings.AI_API_BASE}/images/generations",
+                headers={
+                    "Authorization": f"Bearer {settings.AI_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": settings.AI_IMAGE_MODEL,
+                    "prompt": prompt,
+                    "n": 1,
+                    "size": "1024x1024",
+                },
+                timeout=120,
+            )
+            response.raise_for_status()
+            data = response.json()
+            image_url = data["data"][0]["url"]
+            img_response = requests.get(image_url, timeout=60)
+            img_response.raise_for_status()
+            return img_response.content, image_url
+        except Exception as e:
+            print(f"Image generation fallback: {e}")
+            return AIService._generate_placeholder_image(prompt)
 
     @staticmethod
     def _generate_placeholder_image(text, category="hidup"):
@@ -199,17 +221,49 @@ Output JSON:
         from PIL import Image as PILImage, ImageDraw, ImageFont
         import io, math, random
 
-        # Category themes: (start color, end color, accent, label)
-        themes = {
-            "hidup": ((255, 111, 97), (255, 154, 158), (255, 255, 255), "LIFE QUOTES"),
-            "ai": ((76, 0, 255), (0, 229, 255), (0, 255, 255), "AI INSIGHT"),
-            "astrology": ((45, 27, 96), (119, 47, 157), (255, 215, 0), "COSMIC WISDOM"),
+        palettes = {
+            "hidup": [
+                ((255, 111, 97), (255, 154, 158)),
+                ((255, 94, 98), (255, 140, 105)),
+                ((255, 99, 132), (255, 159, 243)),
+                ((254, 202, 202), (255, 159, 243)),
+                ((255, 154, 158), (255, 182, 193)),
+                ((255, 99, 72), (255, 127, 80)),
+            ],
+            "ai": [
+                ((76, 0, 255), (0, 229, 255)),
+                ((0, 0, 255), (0, 255, 255)),
+                ((72, 0, 255), (0, 255, 200)),
+                ((30, 0, 255), (180, 0, 255)),
+                ((0, 255, 255), (0, 100, 255)),
+                ((120, 0, 255), (0, 200, 255)),
+            ],
+            "astrology": [
+                ((45, 27, 96), (119, 47, 157)),
+                ((72, 0, 255), (180, 0, 255)),
+                ((20, 0, 80), (120, 0, 150)),
+                ((40, 0, 100), (100, 0, 180)),
+                ((25, 25, 112), (138, 43, 226)),
+                ((48, 25, 100), (160, 60, 200)),
+            ],
         }
-        start, end, accent, label = themes.get(
-            category, themes["hidup"]
-        )
+        palette = palettes.get(category, palettes["hidup"])
+        start, end = random.choice(palette)
 
-        # Diagonal gradient
+        def jitter(color, amount=20):
+            return tuple(max(0, min(255, c + random.randint(-amount, amount))) for c in color)
+
+        start = jitter(start, 25)
+        end = jitter(end, 25)
+
+        labels = {
+            "hidup": "LIFE QUOTES",
+            "ai": "AI INSIGHT",
+            "astrology": "COSMIC WISDOM",
+        }
+        label = labels.get(category, "QUOTE")
+        accent = (255, 255, 255)
+
         img = PILImage.new("RGB", (1024, 1024))
         draw_bg = ImageDraw.Draw(img)
         for y in range(1024):
@@ -219,10 +273,10 @@ Output JSON:
             b = int(start[2] + (end[2] - start[2]) * t)
             draw_bg.line([(0, y), (1024, y)], fill=(r, g, b))
 
-        # Decorative shapes: random soft circles
         overlay = PILImage.new("RGBA", (1024, 1024), (0, 0, 0, 0))
         draw_ov = ImageDraw.Draw(overlay)
-        random.seed(hash(text) % 1000)
+        seed = hash(text) % 10000
+        random.seed(seed)
         for _ in range(6):
             cx = random.randint(0, 1024)
             cy = random.randint(0, 1024)
@@ -232,21 +286,17 @@ Output JSON:
                 [cx - radius, cy - radius, cx + radius, cy + radius],
                 fill=(255, 255, 255, alpha),
             )
-        # Category-specific decorations
         if category == "astrology":
-            # Stars
             for _ in range(80):
                 sx, sy = random.randint(0, 1024), random.randint(0, 1024)
                 sr = random.randint(1, 3)
                 draw_ov.ellipse([sx - sr, sy - sr, sx + sr, sy + sr], fill=(255, 255, 200, 200))
         elif category == "ai":
-            # Circuit-like dots
             for _ in range(30):
                 sx, sy = random.randint(0, 1024), random.randint(0, 1024)
                 draw_ov.ellipse([sx - 5, sy - 5, sx + 5, sy + 5], fill=(0, 255, 255, 100))
         img = PILImage.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
 
-        # Fonts — try common fonts per category
         draw = ImageDraw.Draw(img)
         font = None
         font_small = None
@@ -261,10 +311,8 @@ Output JSON:
             font = ImageFont.load_default()
             font_small = font
 
-        # Decorative accent line
         draw.rectangle([112, 880, 912, 884], fill=accent + (255,) if len(accent) == 3 else accent)
 
-        # Wrap text into max 6 lines
         words = text.split()
         lines = []
         current_line = []
@@ -280,23 +328,18 @@ Output JSON:
         if current_line:
             lines.append(" ".join(current_line))
         lines = lines[:6]
+        display_text = "\n".join(lines) if lines else text
 
-        # Vertical centering
-        total_height = len(lines) * 55
-        y_start = (1024 - total_height) // 2 - 40
+        bbox = draw.textbbox((0, 0), display_text, font=font)
+        text_w = bbox[2] - bbox[0]
+        text_h = bbox[3] - bbox[1]
+        x = (1024 - text_w) / 2
+        y = 320 + (360 - text_h) / 2
 
-        # Text shadow for readability
-        for i, line in enumerate(lines):
-            bbox = draw.textbbox((0, 0), line, font=font)
-            tw = bbox[2] - bbox[0]
-            x = (1024 - tw) // 2
-            y = y_start + i * 55
-            draw.text((x + 3, y + 3), line, fill=(0, 0, 0, 140), font=font)
-            draw.text((x, y), line, fill=(255, 255, 255), font=font)
+        draw.text((x + 2, y + 2), display_text, font=font, fill=(0, 0, 0, 120))
+        draw.text((x, y), display_text, font=font, fill=(255, 255, 255, 255))
 
-        # Category label top-left
-        lb = draw.textbbox((0, 0), label, font=font_small)
-        draw.text((60, 60), label, fill=(255, 255, 255, 200), font=font_small)
+        draw.text((512, 900), label, font=font_small, fill=(255, 255, 255, 220), anchor="mm")
 
         buf = io.BytesIO()
         img.save(buf, format="PNG", optimize=True)

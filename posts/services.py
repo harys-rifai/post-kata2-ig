@@ -37,29 +37,26 @@ class PostService:
 
     @staticmethod
     def generate_image_for_post(post):
+        prompt_text = post.image_prompt or post.title or post.topic or "Instagram Post"
+        
         try:
-            prompt_text = post.image_prompt or post.title or post.topic or "Instagram Post"
             image_data, image_url = AIService.generate_image(prompt_text)
             image_data = PostService._process_image(image_data)
             filename = f"post_{post.id}_{timezone.now().strftime('%Y%m%d%H%M%S')}.png"
             post.image.save(filename, ContentFile(image_data), save=False)
             post.save()
             return True
-        except requests.exceptions.HTTPError as e:
-            if "No credentials" in str(e) or "Provider" in str(e) and "does not support" in str(e):
-                return PostService._generate_placeholder_image(post.title or post.topic, post.category)
-            else:
-                raise
         except Exception as e:
-            post.error_message = str(e)
+            post.error_message = f"Image generation failed: {str(e)}"
             try:
                 image_data = PostService._generate_placeholder_image(post.title or post.topic, post.category)
                 filename = f"post_{post.id}_{timezone.now().strftime('%Y%m%d%H%M%S')}.png"
                 post.image.save(filename, ContentFile(image_data), save=False)
+                post.error_message = ""
                 post.save()
                 return True
             except Exception as placeholder_error:
-                post.error_message = f"{str(e)}; placeholder fallback also failed: {str(placeholder_error)}"
+                post.error_message = f"Primary image generation failed: {str(e)}; placeholder fallback also failed: {str(placeholder_error)}"
                 post.save()
                 return False
 
