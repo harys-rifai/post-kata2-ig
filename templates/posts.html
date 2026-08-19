@@ -260,7 +260,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
                 
+                const contentType = response.headers.get('content-type') || '';
+                const isJson = contentType.includes('application/json');
+                
+                if (!isJson) {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text.substring(0, 500));
+                    alert('Generate failed: server returned non-JSON response (status ' + response.status + ')');
+                    return;
+                }
+                
                 const result = await response.json();
+                console.log('Generate response:', result);
                 
                 if (result.success) {
                     const data = result.data;
@@ -279,10 +290,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     generateResult.style.display = 'block';
                     setTimeout(() => window.location.reload(), 1500);
                 } else {
-                    alert('Error: ' + (result.error || 'Unknown error'));
+                    const errMsg = result.error || 'Unknown error';
+                    console.error('Generate failed:', result);
+                    alert('Error: ' + errMsg + ' (status: ' + response.status + ')');
                 }
             } catch (err) {
-                console.error(err);
+                console.error('Generate fetch error:', err);
                 alert('Generate failed: ' + err.message);
             }
             

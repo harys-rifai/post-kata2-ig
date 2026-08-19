@@ -361,7 +361,8 @@ def generate_view(request):
             topic = custom_topic
             Topic.objects.get_or_create(name=topic)
             topics = list(Topic.objects.values_list("name", flat=True))
-        elif not topic:
+        
+        if not topic:
             error = "Please select or enter a topic"
         else:
             try:
@@ -394,14 +395,14 @@ def generate_view(request):
                 logger.error(f"Invalid AI response: {e}")
             except Exception as e:
                 error = f"Generate failed: {str(e) if str(e) else 'Unknown error occurred'}"
-                logger.error(f"Generate failed: {e}")
+                logger.error(f"Generate failed: {e}", exc_info=True)
         
-        # Return JSON for AJAX requests
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json':
+        is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.headers.get('Accept') == 'application/json'
+        if is_ajax:
             from django.http import JsonResponse
             if result:
                 return JsonResponse({"success": True, "data": result})
-            return JsonResponse({"success": False, "error": error})
+            return JsonResponse({"success": False, "error": error or "Unknown error"})
     
     context = {
         "topics": topics,
