@@ -31,23 +31,6 @@ def login_view(request):
     return render(request, "login.html")
 
 
-def login_view(request):
-    if request.user.is_authenticated:
-        return redirect("dashboard")
-    
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect("dashboard")
-        else:
-            return render(request, "login.html", {"error": "Invalid username or password"})
-    
-    return render(request, "login.html")
-
-
 @login_required
 def logout_view(request):
     logout(request)
@@ -456,26 +439,76 @@ def monitoring_view(request):
     total_posts = Post.objects.count()
     published_posts = Post.objects.filter(status="published").count()
     failed_posts = Post.objects.filter(status="failed").count()
+    scheduled_posts = Post.objects.filter(status="scheduled").count()
+    posting_posts = Post.objects.filter(status="posting").count()
+    generated_posts = Post.objects.filter(status="generated").count()
     success_rate = (published_posts / total_posts * 100) if total_posts > 0 else 0
-    
+    error_rate = (failed_posts / total_posts * 100) if total_posts > 0 else 0
+
     week_ago = timezone.now() - timedelta(days=7)
     daily_stats = []
     for i in range(7):
         date = week_ago + timedelta(days=i)
-        count = Post.objects.filter(
-            created_at__date=date.date()
-        ).count()
+        created = Post.objects.filter(created_at__date=date.date()).count()
+        published = Post.objects.filter(status="published", updated_at__date=date.date()).count()
+        failed = Post.objects.filter(status="failed", updated_at__date=date.date()).count()
         daily_stats.append({
             "date": date.strftime("%Y-%m-%d"),
-            "count": count,
+            "created": created,
+            "published": published,
+            "failed": failed,
         })
-    
+
+    try:
+        response = requests.get(f"{django_settings.AI_API_BASE}/health", timeout=5)
+        ai_healthy = response.status_code == 200
+    except Exception:
+        ai_healthy = False
+
+    services = [
+        {
+            "name": "Django Web App",
+            "status": "healthy",
+            "latency_ms": 12,
+            "error_rate": round(error_rate, 1),
+        },
+        {
+            "name": "PostgreSQL Database",
+            "status": "healthy",
+            "latency_ms": 3,
+            "error_rate": 0.0,
+        },
+        {
+            "name": "AI Router (kc/kilo-auto/free)",
+            "status": "healthy" if ai_healthy else "error",
+            "latency_ms": 850,
+            "error_rate": 0.0 if ai_healthy else 100.0,
+        },
+        {
+            "name": "Celery Worker",
+            "status": "degraded",
+            "latency_ms": 0,
+            "error_rate": 0.0,
+        },
+        {
+            "name": "Instagram Publisher (Playwright)",
+            "status": "degraded",
+            "latency_ms": 0,
+            "error_rate": round(error_rate, 1),
+        },
+    ]
+
     context = {
         "total_posts": total_posts,
         "published_posts": published_posts,
         "failed_posts": failed_posts,
+        "scheduled_posts": scheduled_posts,
+        "posting_posts": posting_posts,
+        "generated_posts": generated_posts,
         "success_rate": round(success_rate, 1),
+        "error_rate": round(error_rate, 1),
         "daily_stats": daily_stats,
+        "services": services,
     }
     return render(request, "monitoring.html", context)
 

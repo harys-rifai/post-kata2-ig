@@ -78,8 +78,8 @@ class PostService:
             raise Exception(f"Image processing failed: {str(e)}")
 
     @staticmethod
-    def _generate_placeholder_image(text):
-        img_data, _ = AIService._generate_placeholder_image(text)
+    def _generate_placeholder_image(text, category="hidup"):
+        img_data, _ = AIService._generate_placeholder_image(text, category)
         return img_data
 
     @staticmethod

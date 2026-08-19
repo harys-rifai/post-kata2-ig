@@ -82,11 +82,10 @@ SESSION_ENGINE = "django.contrib.sessions.backends.db"
 SESSION_CACHE_ALIAS = "default"
 
 CSRF_TRUSTED_ORIGINS = ["http://localhost:809", "http://127.0.0.1:809"]
+
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
-from datetime import timedelta
-
 CELERY_TIMEZONE = "Asia/Jakarta"
 CELERY_BEAT_SCHEDULE_FILENAME = "celerybeat-schedule"
 
@@ -133,9 +132,6 @@ CSRF_TRUSTED_ORIGINS = ["http://localhost:809", "http://127.0.0.1:809"]
 INSTAGRAM_USERNAME = os.getenv("INSTAGRAM_USERNAME", "")
 INSTAGRAM_PASSWORD = os.getenv("INSTAGRAM_PASSWORD", "")
 INSTAGRAM_SESSION_PATH = BASE_DIR / "storage" / "instagram_session.json"
-
-SESSION_ENGINE = "django.contrib.sessions.backends.db"
-SESSION_CACHE_ALIAS = "default"
 
 LOG_DIR = BASE_DIR / "logs"
 LOG_DIR.mkdir(exist_ok=True)
