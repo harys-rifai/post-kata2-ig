@@ -1,64 +1,63 @@
 {% extends 'base.html' %}
 {% block title %}Posts{% endblock %}
 {% block content %}
-<div class="header">
-    <h1>Posts</h1>
+<div class="page-header">
+    <div>
+        <h1>Posts</h1>
+        <p class="page-subtitle">All generated and scheduled content</p>
+    </div>
     <div class="user-info">
-        <span>Welcome, {{ request.user.username }}</span>
-        <a href="/logout/">Logout</a>
+        <span class="user-avatar">{{ request.user.username|first|upper }}</span>
+        <span>{{ request.user.username }}</span>
+        <a href="/logout/" class="btn-logout">Logout</a>
     </div>
 </div>
 
 <div class="action-buttons">
     <a href="/posts/create/" class="btn btn-primary">+ Create Post</a>
+    <a href="/generate/" class="btn btn-success">✨ Generate AI</a>
 </div>
 
-<div class="content-card">
-    <h2>All Posts</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Topic</th>
-                <th>Status</th>
-                <th>Image</th>
-                <th>Publish At</th>
-                <th>Created</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for post in posts %}
-            <tr>
-                <td>{{ post.title }}</td>
-                <td>{{ post.topic }}</td>
-                <td>
-                    <span class="status {{ post.status }}">
-                        {{ post.get_status_display }}
-                    </span>
-                </td>
-                <td>
-                    {% if post.image %}
-                    <img src="{{ post.image.url }}" style="max-width: 50px; max-height: 50px; border-radius: 4px;">
-                    {% else %}
-                    <span style="color: #999;">No image</span>
-                    {% endif %}
-                </td>
-                <td>{{ post.publish_at|date:"Y-m-d H:i"|default:"-" }}</td>
-                <td>{{ post.created_at|date:"Y-m-d H:i" }}</td>
-                <td>
-                    <a href="/posts/edit/{{ post.id }}/" class="btn btn-primary" style="padding: 6px 12px; font-size: 12px;">Edit</a>
-                    <a href="/posts/delete/{{ post.id }}/" class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="return confirm('Are you sure?')">Delete</a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="7" class="empty-state">
-                    No posts yet. Go to Generate page to create content.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="posts-grid">
+    {% for post in posts %}
+    <div class="post-card">
+        <div class="post-card-header">
+            <div class="post-thumb">
+                {% if post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                {% else %}
+                <div class="no-image">📷</div>
+                {% endif %}
+            </div>
+            <div class="post-meta">
+                <h3 class="post-title">{{ post.title }}</h3>
+                <div class="post-tags">
+                    <span class="tag tag-{{ post.category }}">{{ post.get_category_display }}</span>
+                    <span class="tag tag-status status-{{ post.status }}">{{ post.get_status_display }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="post-body">
+            <p class="post-topic">{{ post.topic }}</p>
+            <p class="post-caption">{{ post.caption|truncatewords:20 }}</p>
+        </div>
+        <div class="post-footer">
+            <div class="post-dates">
+                {% if post.publish_at %}
+                <span class="date-label">📅 {{ post.publish_at|date:"Y-m-d H:i" }}</span>
+                {% endif %}
+                <span class="date-label">🕐 {{ post.created_at|date:"Y-m-d H:i" }}</span>
+            </div>
+            <div class="post-actions">
+                <a href="/posts/edit/{{ post.id }}/" class="btn btn-sm btn-outline">Edit</a>
+                <a href="/posts/delete/{{ post.id }}/" class="btn btn-sm btn-danger" onclick="return confirm('Delete this post?')">Delete</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+        No posts yet. <a href="/generate/">Generate your first content →</a>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

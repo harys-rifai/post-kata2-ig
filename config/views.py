@@ -102,6 +102,7 @@ def post_create_view(request):
         image_prompt = request.POST.get("image_prompt", "").strip()
         publish_at = request.POST.get("publish_at", "").strip()
         status = request.POST.get("status", "draft")
+        category = request.POST.get("category", "hidup")
         
         if not title or not topic:
             return render(request, "post_form.html", {
@@ -115,6 +116,7 @@ def post_create_view(request):
             caption=caption,
             hashtags=hashtags,
             image_prompt=image_prompt,
+            category=category,
             status=status,
             publish_at=publish_at if publish_at else None,
         )

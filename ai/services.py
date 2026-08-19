@@ -287,7 +287,7 @@ class InstagramAutomationService:
         os.makedirs(storage_dir, exist_ok=True)
 
         p = sync_playwright().start()
-        browser = p.chromium.launch(headless=False)
+        browser = p.chromium.launch(headless=True)
         context = browser.new_context(
             viewport={"width": 1280, "height": 800},
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -403,6 +403,8 @@ class InstagramAutomationService:
             return True
         except Exception as e:
             print(f"Instagram publish error: {e}")
+            post.error_message = str(e)
+            post.save()
             return False
         finally:
             context.close()
