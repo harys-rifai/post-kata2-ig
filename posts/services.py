@@ -38,16 +38,15 @@ class PostService:
     @staticmethod
     def generate_image_for_post(post):
         try:
-            image_data, image_url = AIService.generate_image(post.image_prompt)
+            prompt_text = post.image_prompt or post.title or post.topic or "Instagram Post"
+            image_data, image_url = AIService.generate_image(prompt_text)
             image_data = PostService._process_image(image_data)
             filename = f"post_{post.id}_{timezone.now().strftime('%Y%m%d%H%M%S')}.png"
             post.image.save(filename, ContentFile(image_data), save=False)
             post.save()
             return True
         except requests.exceptions.HTTPError as e:
-            # Handle quota errors specifically
             if "No credentials" in str(e) or "Provider" in str(e) and "does not support" in str(e):
-                # Fallback to placeholder image
                 return PostService._generate_placeholder_image(post.title or post.topic, post.category)
             else:
                 raise
