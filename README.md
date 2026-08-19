@@ -107,11 +107,17 @@ Update Status
 ## Running the Application
 
 ### Using run.bat (Windows)
+
+- `run.bat` will try to start Redis from `C:\redis\redis-server.exe` if it is not found in PATH.
+- Make sure `C:\redis\redis.windows.conf` uses the same password as `REDIS_URL` in `.env`.
+- If Redis is already running manually, `run.bat` will reuse it.
+
 ```bash
 run.bat
 ```
 
 ### Manual Start
+
 ```bash
 # Terminal 1 - Redis
 redis-server
@@ -261,7 +267,9 @@ Log files are stored in `logs/` directory:
 - AI Router must be running at `http://localhost:20128/v1` for content generation
 - Playwright Chromium must be installed for Instagram automation
 - Redis must be running for Celery worker and beat
+- On Windows, if `redis-server` is not in PATH, place Redis in `C:\redis` so `run.bat` can start it automatically
 - Session persistence for Instagram is stored in `storage/instagram_session.json`
+- The Redis password must match between `.env` (`REDIS_URL`) and `C:\redis\redis.windows.conf` (`requirepass`)
 
 ## Security
 
