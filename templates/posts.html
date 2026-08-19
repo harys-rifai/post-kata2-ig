@@ -38,6 +38,10 @@
                 <span class="date-label">🕐 {{ post.created_at|date:"Y-m-d H:i" }}</span>
             </div>
             <div class="post-actions">
+                {% if post.image %}
+                <button type="button" class="btn btn-sm btn-outline" data-post-id="{{ post.id }}" data-image-url="{{ post.image.url }}" onclick="previewImage(this)">Preview</button>
+                <a href="{{ post.image.url }}" download class="btn btn-sm btn-outline">Download</a>
+                {% endif %}
                 <a href="/posts/edit/{{ post.id }}/" class="btn btn-sm btn-outline">Edit</a>
                 <a href="/posts/delete/{{ post.id }}/" class="btn btn-sm btn-danger" onclick="return confirm('Delete this post?')">Delete</a>
             </div>
@@ -48,6 +52,22 @@
         No posts yet. <a href="/generate/">Generate your first content →</a>
     </div>
     {% endfor %}
+</div>
+
+<!-- Image Preview Modal -->
+<div id="image-preview-modal" class="modal">
+    <div class="modal-content" style="max-width: 800px; background: transparent; box-shadow: none;">
+        <div class="modal-header" style="background: white; border-radius: 12px 12px 0 0;">
+            <h3>Image Preview</h3>
+            <button type="button" class="close" id="image-preview-close">&times;</button>
+        </div>
+        <div class="modal-body" style="background: white; padding: 20px; text-align: center;">
+            <img id="preview-image" src="" alt="Preview" style="max-width: 100%; max-height: 70vh; border-radius: 8px;">
+            <div style="margin-top: 15px;">
+                <a id="preview-download-link" href="" download class="btn btn-primary">Download Image</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Create Post Modal -->
@@ -301,6 +321,40 @@ document.addEventListener('DOMContentLoaded', function() {
             
             generateBtn.textContent = originalText;
             generateBtn.disabled = false;
+        });
+    }
+
+    window.previewImage = function(button) {
+        const imageUrl = button.getAttribute('data-image-url');
+        const modal = document.getElementById('image-preview-modal');
+        const previewImg = document.getElementById('preview-image');
+        const downloadLink = document.getElementById('preview-download-link');
+        
+        if (imageUrl && modal && previewImg) {
+            previewImg.src = imageUrl;
+            downloadLink.href = imageUrl;
+            downloadLink.download = 'post-image.png';
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+    };
+
+    const imagePreviewModal = document.getElementById('image-preview-modal');
+    const imagePreviewClose = document.getElementById('image-preview-close');
+    
+    if (imagePreviewClose && imagePreviewModal) {
+        imagePreviewClose.addEventListener('click', function() {
+            imagePreviewModal.classList.remove('show');
+            document.body.style.overflow = '';
+        });
+    }
+    
+    if (imagePreviewModal) {
+        window.addEventListener('click', function(event) {
+            if (event.target == imagePreviewModal) {
+                imagePreviewModal.classList.remove('show');
+                document.body.style.overflow = '';
+            }
         });
     }
 });
