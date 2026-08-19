@@ -1,14 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Generate Content{% endblock %}
+{% block breadcrumb %}<span class="current">Generate</span>{% endblock %}
 {% block content %}
-<div class="header">
-    <h1>Generate Content</h1>
-    <div class="user-info">
-        <span>Welcome, {{ request.user.username }}</span>
-        <a href="/logout/">Logout</a>
-    </div>
-</div>
-
 <div class="content-card">
     <h2>Generate New Content</h2>
     <form id="generate-form" method="POST">

@@ -1,16 +1,8 @@
 {% extends 'base.html' %}
 {% block title %}{% if post %}Edit Post{% else %}Create Post{% endif %}{% endblock %}
+{% block breadcrumb %}<span class="current">{% if post %}Edit Post{% else %}New Post{% endif %}</span>{% endblock %}
 {% block content %}
-<div class="header">
-    <h1>{% if post %}Edit Post{% else %}Create Post{% endif %}</h1>
-    <div class="user-info">
-        <span>Welcome, {{ request.user.username }}</span>
-        <a href="/logout/">Logout</a>
-    </div>
-</div>
-
 <div class="content-card">
-    <h2>{% if post %}Edit Post{% else %}New Post{% endif %}</h2>
     {% if error %}
     <div style="margin-bottom: 20px; padding: 15px; background: #f8d7da; border-radius: 6px; color: #721c24;">
         <strong>Error:</strong> {{ error }}

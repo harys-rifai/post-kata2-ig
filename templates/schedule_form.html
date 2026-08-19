@@ -1,14 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Schedule Post{% endblock %}
+{% block breadcrumb %}<span class="current">Schedule Post</span>{% endblock %}
 {% block content %}
-<div class="header">
-    <h1>Schedule Post</h1>
-    <div class="user-info">
-        <span>Welcome, {{ request.user.username }}</span>
-        <a href="/logout/">Logout</a>
-    </div>
-</div>
-
 <div class="content-card">
     <h2>Schedule New Post</h2>
     {% if error %}

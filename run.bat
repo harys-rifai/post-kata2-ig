@@ -3,6 +3,17 @@ echo ===================================
 echo START DJANGO INSTAGRAM AI
 echo ===================================
 
+set REDIS_URL=redis://:Password09!@localhost:6379/0
+set CELERY_BROKER_URL=%REDIS_URL%
+set CELERY_RESULT_BACKEND=%REDIS_URL%
+
+echo Killing existing processes...
+taskkill /F /IM redis-server.exe >nul 2>nul
+taskkill /F /FI "IMAGENAME eq python.exe" /FI "WINDOWTITLE eq *celery*" /F >nul 2>nul
+taskkill /F /FI "IMAGENAME eq python.exe" /FI "WINDOWTITLE eq *runserver*" /F >nul 2>nul
+for /f "tokens=5" %%a in ('netstat -a -n -o ^| findstr ":809"') do taskkill /F /PID %%a >nul 2>nul
+echo Done killing.
+
 echo Checking Redis...
 where redis-server >nul 2>nul
 if %errorlevel% == 0 (
@@ -10,13 +21,18 @@ if %errorlevel% == 0 (
     echo Redis started.
     timeout /t 2 >nul
 ) else (
-    echo [WARNING] redis-server not found in PATH.
-    echo Make sure Redis is running on localhost:6379
-    echo Install options:
-    echo   - WSL: wsl sudo apt install redis-server ^& wsl redis-server
-    echo   - Docker: docker run -d -p 6379:6379 redis
-    echo   - Windows: https://github.com/tporadowski/redis/releases
-    echo.
+    if exist "C:\redis\redis-server.exe" (
+        start /b "Redis Server" /d C:\redis redis-server.exe redis.windows.conf
+        echo Redis started from C:\redis.
+        timeout /t 2 >nul
+    ) else (
+        echo [WARNING] redis-server not found in PATH or C:\redis.
+        echo Make sure Redis is running on localhost:6379
+        echo Install options:
+        echo   - Docker: docker run -d -p 6379:6379 redis
+        echo   - Windows: https://github.com/tporadowski/redis/releases
+        echo.
+    )
 )
 
 echo Starting Celery Worker...

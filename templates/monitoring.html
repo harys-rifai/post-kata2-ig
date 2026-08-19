@@ -1,45 +1,41 @@
 {% extends 'base.html' %}
 {% block title %}Service Observability{% endblock %}
+{% block breadcrumb %}<span class="current">Monitoring</span>{% endblock %}
 {% block content %}
-<div class="header">
-    <h1>Service Observability</h1>
-    <div class="user-info">
-        <span>Welcome, {{ request.user.username }}</span>
-        <a href="/logout/">Logout</a>
-    </div>
-</div>
 
 <!-- Service Dependencies -->
 <div class="content-card">
     <h2>Service Dependencies</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Service</th>
-                <th>Status</th>
-                <th>Latency</th>
-                <th>Error Rate</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for service in services %}
-            <tr>
-                <td><strong>{{ service.name }}</strong></td>
-                <td>
-                    {% if service.status == 'healthy' %}
-                        <span class="status published">HEALTHY</span>
-                    {% elif service.status == 'degraded' %}
-                        <span class="status scheduled">DEGRADED</span>
-                    {% else %}
-                        <span class="status failed">ERROR</span>
-                    {% endif %}
-                </td>
-                <td>{{ service.latency_ms }}ms</td>
-                <td>{{ service.error_rate }}%</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Latency</th>
+                    <th>Error Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in services %}
+                <tr>
+                    <td><strong>{{ service.name }}</strong></td>
+                    <td>
+                        {% if service.status == 'healthy' %}
+                            <span class="status published">HEALTHY</span>
+                        {% elif service.status == 'degraded' %}
+                            <span class="status scheduled">DEGRADED</span>
+                        {% else %}
+                            <span class="status failed">ERROR</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ service.latency_ms }}ms</td>
+                    <td>{{ service.error_rate }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <!-- Metrics Cards -->
@@ -73,32 +69,34 @@
 <!-- Daily Trends -->
 <div class="content-card">
     <h2>Daily Activity (Last 7 Days)</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Created</th>
-                <th>Published</th>
-                <th>Failed</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for day in daily_stats %}
-            <tr>
-                <td>{{ day.date }}</td>
-                <td>{{ day.created }}</td>
-                <td>{{ day.published }}</td>
-                <td>{{ day.failed }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" class="empty-state">
-                    No data available for the last 7 days.
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Created</th>
+                    <th>Published</th>
+                    <th>Failed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for day in daily_stats %}
+                <tr>
+                    <td>{{ day.date }}</td>
+                    <td>{{ day.created }}</td>
+                    <td>{{ day.published }}</td>
+                    <td>{{ day.failed }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-state">
+                        No data available for the last 7 days.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <!-- Bar chart with CSS -->

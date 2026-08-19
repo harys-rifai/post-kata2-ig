@@ -1,17 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Settings{% endblock %}
+{% block breadcrumb %}<span class="current">Settings</span>{% endblock %}
 {% block content %}
-<div class="page-header">
-    <div>
-        <h1>Settings</h1>
-        <p class="page-subtitle">System configuration and Instagram connection</p>
-    </div>
-    <div class="user-info">
-        <span class="user-avatar">{{ request.user.username|first|upper }}</span>
-        <span>{{ request.user.username }}</span>
-        <a href="/logout/" class="btn-logout">Logout</a>
-    </div>
-</div>
 
 <div class="settings-grid">
     <div class="settings-section">
